@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, ExternalLink, Trash2, XCircle, Loader2, DollarSign, CalendarDays, Tag, BarChart3 } from 'lucide-react';
+import { playDeleteFeedback } from '@/lib/celebrations';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -32,9 +33,10 @@ const SubscriptionDetail = () => {
   if (!sub) return <div className="text-center py-20 text-muted-foreground">Subscription not found</div>;
 
   const handleDelete = async () => {
+    playDeleteFeedback();
     await deleteMutation.mutateAsync(sub.id);
     toast({ title: 'Subscription deleted' });
-    navigate('/');
+    setTimeout(() => navigate('/'), 500);
   };
 
   const handleCancel = async () => {
