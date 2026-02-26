@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { format, addMonths, addWeeks, addYears } from 'date-fns';
-import { useCatalog, useAddSubscription } from '@/hooks/useSubscriptions';
+import { useCatalog, useAddSubscription, type CatalogItem } from '@/hooks/useSubscriptions';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,29 @@ const AddSubscription = () => {
   const [category, setCategory] = useState('Other');
   const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
 
+  const [logoFallbackStep, setLogoFallbackStep] = useState<Record<string, number>>({});
+
+  const getWebsiteFavicon = (websiteUrl: string | null) => {
+    if (!websiteUrl) return null;
+    try {
+      const domain = new URL(websiteUrl).hostname;
+      return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+    } catch {
+      return null;
+    }
+  };
+
+  const getLogoSrc = (item: CatalogItem) => {
+    const step = logoFallbackStep[item.id] ?? 0;
+    if (step === 0) return item.logo_url;
+    if (step === 1) return getWebsiteFavicon(item.website_url);
+    return null;
+  };
+
+  const handleLogoError = (item: CatalogItem) => {
+    setLogoFallbackStep((prev) => ({ ...prev, [item.id]: (prev[item.id] ?? 0) + 1 }));
+  };
+
   const getNextRenewal = (start: string, billing: string) => {
     const d = new Date(start);
     if (billing === 'weekly') return format(addWeeks(d, 1), 'yyyy-MM-dd');
@@ -34,7 +57,7 @@ const AddSubscription = () => {
     return format(addMonths(d, 1), 'yyyy-MM-dd');
   };
 
-  const handleCatalogSelect = async (item: any) => {
+  const handleCatalogSelect = async (item: CatalogItem) => {
     try {
       await addMutation.mutateAsync({
         catalog_id: item.id,
@@ -112,28 +135,38 @@ const AddSubscription = () => {
             <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
           ) : (
             <div className="grid grid-cols-2 gap-2">
-              {catalog?.map((item, i) => (
-                <motion.div key={item.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }}>
-                  <Card
-                    className="cursor-pointer hover:border-primary/30 transition-colors"
-                    onClick={() => handleCatalogSelect(item)}
-                  >
-                    <CardContent className="flex items-center gap-3 p-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary overflow-hidden shrink-0">
-                        {item.logo_url ? (
-                          <img src={item.logo_url} alt="" className="h-5 w-5 object-contain" />
-                        ) : (
-                          <span className="text-xs font-bold text-muted-foreground">{item.name[0]}</span>
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">{item.name}</p>
-                        <p className="text-xs text-muted-foreground">${item.default_price?.toFixed(2)}/mo</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
+              {catalog?.map((item, i) => {
+                const logoSrc = getLogoSrc(item);
+
+                return (
+                  <motion.div key={item.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }}>
+                    <Card
+                      className="cursor-pointer hover:border-primary/30 transition-colors"
+                      onClick={() => handleCatalogSelect(item)}
+                    >
+                      <CardContent className="flex items-center gap-3 p-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary overflow-hidden shrink-0">
+                          {logoSrc ? (
+                            <img
+                              src={logoSrc}
+                              alt={`${item.name} logo`}
+                              className="h-5 w-5 object-contain"
+                              loading="lazy"
+                              onError={() => handleLogoError(item)}
+                            />
+                          ) : (
+                            <span className="text-xs font-bold text-muted-foreground">{item.name?.[0] ?? '?'}</span>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{item.name}</p>
+                          <p className="text-xs text-muted-foreground">${item.default_price?.toFixed(2)}/mo</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
             </div>
           )}
         </>
