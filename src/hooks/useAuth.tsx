@@ -84,7 +84,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { error };
       } catch (err: any) {
         console.error('Native Google sign-in error:', err);
-        return { error: err };
+        const message = err?.message || 'Google sign-in failed on native device';
+        return { error: { message } };
       }
     } else {
       // Web: use standard OAuth redirect
@@ -97,7 +98,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (data?.url) {
-        window.location.href = data.url;
+        const popup = window.open(data.url, '_blank', 'noopener,noreferrer');
+        if (!popup) {
+          window.location.href = data.url;
+        }
       }
 
       return { error };
