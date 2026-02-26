@@ -1,8 +1,10 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { Capacitor } from '@capacitor/core';
-import { Browser } from '@capacitor/browser';
 import { supabase } from '@/integrations/supabase/client';
+
+// Web Client ID from your Google Cloud Console (Web Sabzo)
+const GOOGLE_WEB_CLIENT_ID = '710406899937-8l7n9kdlvc2l4t5hvl3qf9t9qj4lc5pn.apps.googleusercontent.com';
 
 interface AuthContextType {
   session: Session | null;
@@ -53,27 +55,55 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signInWithGoogle = async () => {
-    const redirectTo = Capacitor.isNativePlatform()
-      ? 'com.subzo.app://auth/callback'
-      : window.location.origin;
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const { SocialLogin } = await import('@capgo/capacitor-social-login');
 
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo,
-        skipBrowserRedirect: true,
-      },
-    });
+        await SocialLogin.initialize({
+          google: {
+            webClientId: GOOGLE_WEB_CLIENT_ID,
+            mode: 'online',
+          },
+        });
 
-    if (data?.url) {
-      if (Capacitor.isNativePlatform()) {
-        await Browser.open({ url: data.url });
-      } else {
+        const response = await SocialLogin.login({
+          provider: 'google',
+          options: {
+            scopes: ['email', 'profile'],
+          },
+        });
+
+        const idToken = (response as any)?.result?.idToken;
+        if (!idToken) {
+          return { error: { message: 'No ID token received from Google' } };
+        }
+
+        const { error } = await supabase.auth.signInWithIdToken({
+          provider: 'google',
+          token: idToken,
+        });
+
+        return { error };
+      } catch (err: any) {
+        console.error('Native Google sign-in error:', err);
+        return { error: err };
+      }
+    } else {
+      // Web: use standard OAuth redirect
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+          skipBrowserRedirect: true,
+        },
+      });
+
+      if (data?.url) {
         window.location.href = data.url;
       }
-    }
 
-    return { error };
+      return { error };
+    }
   };
 
   const signOut = async () => {
