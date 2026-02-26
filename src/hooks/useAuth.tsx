@@ -51,10 +51,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: {
+        redirectTo: window.location.origin,
+        skipBrowserRedirect: true,
+      },
     });
+
+    if (data?.url) {
+      // Open OAuth URL in the same window (works for both web and Capacitor)
+      window.location.href = data.url;
+    }
+
     return { error };
   };
 
