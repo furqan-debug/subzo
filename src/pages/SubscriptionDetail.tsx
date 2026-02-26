@@ -40,6 +40,7 @@ const SubscriptionDetail = () => {
   };
 
   const handleCancel = async () => {
+    playDeleteFeedback();
     await updateMutation.mutateAsync({ id: sub.id, status: 'cancelled' });
     toast({ title: 'Marked as cancelled' });
   };
