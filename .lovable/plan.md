@@ -1,41 +1,29 @@
 
 
-## Plan: Add Mock Paywall with Subscription Plans
+## Plan: Clean Up Branding & Fix Capacitor App ID
 
-### Overview
-After login, users will see a premium plans page. They select a plan, and the app records their choice — granting access to the main app. No real payment processing.
+### Problem
+The Capacitor config uses an invalid App ID (`app.lovable.8f6f7216fd234557bf5f8e7ab00fbcd0`) which fails Android/iOS validation. Multiple files also reference "Lovable" branding that should be replaced with the app's actual name "Subzo".
 
-### Database Changes
+### Changes
 
-**Add columns to `profiles` table:**
-- `subscription_plan` (text, default `null`) — stores `'monthly'`, `'6month'`, or `'annual'`
-- `plan_selected_at` (timestamptz, default `null`) — when they chose the plan
+**1. `capacitor.config.ts`** — Fix App ID and app name:
+- `appId`: `'com.subzo.app'`
+- `appName`: `'Subzo'`
+- Keep server URL as-is (it's the preview URL for hot-reload, not branding)
 
-### New Page: `/plans`
+**2. `index.html`** — Replace all branding:
+- Title: `Subzo`
+- Description: `Smart subscription tracker`
+- Remove Lovable og:image, twitter:site references
+- Clean up TODO comments
 
-**`src/pages/Plans.tsx`** — A premium-styled plans selection page with:
-- Three plan cards: Monthly ($0.99), 6-Month ($4.99), Annual ($8.99)
-- Highlight "Most Popular" badge on 6-Month plan
-- Savings percentages displayed on 6-month and annual
-- Glass-card styling consistent with existing premium theme
-- Framer Motion staggered entry animations
-- On plan selection: update `profiles.subscription_plan`, play the add celebration sound/confetti, navigate to `/`
+**3. `vite.config.ts`** — The `lovable-tagger` import is a dev-only tool used internally by the platform. It only runs in development mode and is not included in production builds. It will be left as-is since removing it could break the development environment.
 
-### Routing & Access Control
+**4. `README.md`** — Rewrite with clean project documentation for Subzo (no Lovable references).
 
-**`src/components/ProtectedRoute.tsx`** — After confirming user is authenticated, query their profile for `subscription_plan`. If `null`, redirect to `/plans`.
-
-**`src/App.tsx`** — Add `/plans` route (authenticated but not behind paywall check).
-
-### Hook Updates
-
-**`src/hooks/useProfile.ts`** (new) — Hook to fetch/update the current user's profile, exposing `subscription_plan` for the paywall gate.
-
-### Implementation Steps
-
-1. Run migration to add `subscription_plan` and `plan_selected_at` columns to `profiles`
-2. Create `useProfile` hook
-3. Create `Plans.tsx` page with three plan cards, animations, and celebration feedback
-4. Update `ProtectedRoute` to check subscription status and redirect unpaid users to `/plans`
-5. Add `/plans` route to `App.tsx`
+### Files Modified
+- `capacitor.config.ts`
+- `index.html`
+- `README.md`
 
