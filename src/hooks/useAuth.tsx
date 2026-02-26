@@ -68,9 +68,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         const response = await SocialLogin.login({
           provider: 'google',
-          options: {
-            scopes: ['email', 'profile'],
-          },
+          options: {},
         });
 
         const idToken = (response as any)?.result?.idToken;
