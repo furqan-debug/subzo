@@ -6,12 +6,22 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
-import { LogOut, User, Loader2, Settings, Bell, Globe } from 'lucide-react';
+import { LogOut, User, Loader2, Settings, Bell, Globe, Crown } from 'lucide-react';
+import { useProfile } from '@/hooks/useProfile';
+import { useNavigate } from 'react-router-dom';
 
 const currencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'INR', 'JPY'];
 
+const planLabels: Record<string, string> = {
+  monthly: 'Monthly — $0.99/mo',
+  '6month': '6-Month — $4.99/6mo',
+  annual: 'Annual — $8.99/yr',
+};
+
 const SettingsPage = () => {
   const { user, signOut } = useAuth();
+  const { subscriptionPlan } = useProfile();
+  const navigate = useNavigate();
   const [currency, setCurrency] = useState('USD');
   const [reminderDays, setReminderDays] = useState('3');
   const [loading, setLoading] = useState(true);
@@ -116,8 +126,30 @@ const SettingsPage = () => {
         </div>
       </motion.div>
 
-      {/* Sign out */}
+      {/* Current Plan */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <div className="glass-card p-5">
+          <div className="relative z-10 space-y-3">
+            <div className="flex items-center gap-2">
+              <Crown className="h-4 w-4 text-primary" />
+              <Label className="text-xs text-muted-foreground uppercase tracking-wider">Current Plan</Label>
+            </div>
+            <p className="font-medium text-foreground">
+              {subscriptionPlan ? planLabels[subscriptionPlan] || subscriptionPlan : 'No plan selected'}
+            </p>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => navigate('/plans')}
+            >
+              Change Plan
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Sign out */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
         <Button
           variant="outline"
           className="w-full text-destructive border-destructive/20 hover:bg-destructive/10 hover:border-destructive/30 transition-all"
