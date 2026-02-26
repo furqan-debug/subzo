@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { Search, ArrowLeft, Loader2, PenLine, Sparkles } from 'lucide-react';
+import { playAddCelebration } from '@/lib/celebrations';
 
 const categories = ['Entertainment', 'Music', 'Productivity', 'Cloud', 'Fitness', 'Health', 'Security', 'Education', 'News', 'Gaming', 'Shopping', 'Professional', 'Other'];
 
@@ -71,8 +72,9 @@ const AddSubscription = () => {
         cancellation_steps: item.cancellation_steps,
         notes: null,
       });
-      toast({ title: `${item.name} added!` });
-      navigate('/');
+      playAddCelebration();
+      toast({ title: `${item.name} added! 🎉` });
+      setTimeout(() => navigate('/'), 600);
     } catch (e: any) {
       toast({ title: 'Error', description: e.message, variant: 'destructive' });
     }
@@ -94,8 +96,9 @@ const AddSubscription = () => {
         cancellation_steps: null,
         notes: null,
       });
-      toast({ title: `${name} added!` });
-      navigate('/');
+      playAddCelebration();
+      toast({ title: `${name} added! 🎉` });
+      setTimeout(() => navigate('/'), 600);
     } catch (e: any) {
       toast({ title: 'Error', description: e.message, variant: 'destructive' });
     }
