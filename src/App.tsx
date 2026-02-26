@@ -14,6 +14,7 @@ import AddSubscription from "./pages/AddSubscription";
 import SubscriptionDetail from "./pages/SubscriptionDetail";
 import Analytics from "./pages/Analytics";
 import SettingsPage from "./pages/SettingsPage";
+import Plans from "./pages/Plans";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/auth" element={<Auth />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/plans" element={<ProtectedRoute requirePlan={false}><Plans /></ProtectedRoute>} />
       <Route path="/" element={<ProtectedRoute><AppLayout><Index /></AppLayout></ProtectedRoute>} />
       <Route path="/add" element={<ProtectedRoute><AppLayout><AddSubscription /></AppLayout></ProtectedRoute>} />
       <Route path="/subscription/:id" element={<ProtectedRoute><AppLayout><SubscriptionDetail /></AppLayout></ProtectedRoute>} />

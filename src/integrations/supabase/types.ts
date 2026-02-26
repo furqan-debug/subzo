@@ -21,7 +21,9 @@ export type Database = {
           currency: string
           display_name: string | null
           id: string
+          plan_selected_at: string | null
           reminder_days_before: number
+          subscription_plan: string | null
           updated_at: string
           user_id: string
         }
@@ -31,7 +33,9 @@ export type Database = {
           currency?: string
           display_name?: string | null
           id?: string
+          plan_selected_at?: string | null
           reminder_days_before?: number
+          subscription_plan?: string | null
           updated_at?: string
           user_id: string
         }
@@ -41,7 +45,9 @@ export type Database = {
           currency?: string
           display_name?: string | null
           id?: string
+          plan_selected_at?: string | null
           reminder_days_before?: number
+          subscription_plan?: string | null
           updated_at?: string
           user_id?: string
         }
