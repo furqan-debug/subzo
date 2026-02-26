@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useSubscriptions } from '@/hooks/useSubscriptions';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, DollarSign, TrendingUp, Star } from 'lucide-react';
+import { Loader2, DollarSign, TrendingUp, Star, Sparkles } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 const COLORS = [
@@ -13,7 +13,6 @@ const COLORS = [
 
 const Analytics = () => {
   const { data: subscriptions, isLoading } = useSubscriptions();
-
   const active = useMemo(() => subscriptions?.filter((s) => s.status === 'active') ?? [], [subscriptions]);
 
   const monthlyTotal = useMemo(() => {
@@ -51,79 +50,93 @@ const Analytics = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-xl font-semibold">Insights</h1>
+      <div className="flex items-center gap-2">
+        <Sparkles className="h-5 w-5 text-primary" />
+        <h1 className="font-display text-xl font-semibold">Insights</h1>
+      </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3">
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-          <Card>
-            <CardContent className="p-4">
-              <DollarSign className="h-5 w-5 text-primary mb-2" />
-              <p className="text-xs text-muted-foreground">Monthly</p>
-              <p className="font-display text-xl font-bold">${monthlyTotal.toFixed(2)}</p>
-            </CardContent>
-          </Card>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="glass-card p-4">
+            <div className="relative z-10">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 border border-primary/20 mb-3">
+                <DollarSign className="h-4 w-4 text-primary" />
+              </div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Monthly</p>
+              <p className="font-display text-2xl font-bold mt-0.5 text-gradient">${monthlyTotal.toFixed(2)}</p>
+            </div>
+          </div>
         </motion.div>
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-          <Card>
-            <CardContent className="p-4">
-              <TrendingUp className="h-5 w-5 text-accent mb-2" />
-              <p className="text-xs text-muted-foreground">Yearly projection</p>
-              <p className="font-display text-xl font-bold">${(monthlyTotal * 12).toFixed(0)}</p>
-            </CardContent>
-          </Card>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+          <div className="glass-card p-4">
+            <div className="relative z-10">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 border border-accent/20 mb-3">
+                <TrendingUp className="h-4 w-4 text-accent" />
+              </div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Yearly</p>
+              <p className="font-display text-2xl font-bold mt-0.5">${(monthlyTotal * 12).toFixed(0)}</p>
+            </div>
+          </div>
         </motion.div>
       </div>
 
       {/* Most expensive */}
       {mostExpensive && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <Card className="border-primary/20 bg-primary/5">
-            <CardContent className="flex items-center gap-3 p-4">
-              <Star className="h-5 w-5 text-primary shrink-0" />
-              <div>
-                <p className="text-xs text-muted-foreground">Most expensive</p>
-                <p className="font-semibold">{mostExpensive.name} — ${Number(mostExpensive.amount).toFixed(2)}/{mostExpensive.billing_cycle === 'monthly' ? 'mo' : mostExpensive.billing_cycle === 'yearly' ? 'yr' : 'wk'}</p>
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <div className="glass-card glow-primary border-primary/20 p-4">
+            <div className="flex items-center gap-3 relative z-10">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 border border-primary/20">
+                <Star className="h-5 w-5 text-primary" />
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Most expensive</p>
+                <p className="font-semibold">{mostExpensive.name} — <span className="text-primary">${Number(mostExpensive.amount).toFixed(2)}</span>/{mostExpensive.billing_cycle === 'monthly' ? 'mo' : mostExpensive.billing_cycle === 'yearly' ? 'yr' : 'wk'}</p>
+              </div>
+            </div>
+          </div>
         </motion.div>
       )}
 
       {/* Category chart */}
       {byCategory.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-          <Card>
-            <CardContent className="p-4">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+          <div className="glass-card p-5">
+            <div className="relative z-10">
               <h3 className="font-display font-semibold mb-4">Spending by category</h3>
-              <div className="h-52">
+              <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={byCategory} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+                    <Pie data={byCategory} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={3} dataKey="value" strokeWidth={0}>
                       {byCategory.map((_, i) => (
                         <Cell key={i} fill={COLORS[i % COLORS.length]} />
                       ))}
                     </Pie>
                     <Tooltip
-                      contentStyle={{ backgroundColor: 'hsl(230, 20%, 10%)', border: '1px solid hsl(230, 15%, 18%)', borderRadius: '8px' }}
+                      contentStyle={{
+                        backgroundColor: 'hsl(230, 20%, 10%)',
+                        border: '1px solid hsl(230, 15%, 20%)',
+                        borderRadius: '12px',
+                        boxShadow: '0 8px 32px hsl(0 0% 0% / 0.4)',
+                      }}
                       formatter={(value: number) => [`$${value.toFixed(2)}/mo`]}
                     />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="mt-3 space-y-2">
+              <div className="mt-4 space-y-2.5">
                 {byCategory.map((cat, i) => (
                   <div key={cat.name} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                      <span>{cat.name}</span>
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-3 w-3 rounded-full ring-2 ring-offset-1 ring-offset-card" style={{ backgroundColor: COLORS[i % COLORS.length], boxShadow: `0 0 8px ${COLORS[i % COLORS.length]}40` }} />
+                      <span className="text-foreground/80">{cat.name}</span>
                     </div>
-                    <span className="text-muted-foreground">${cat.value.toFixed(2)}/mo</span>
+                    <span className="font-medium">${cat.value.toFixed(2)}<span className="text-muted-foreground text-xs">/mo</span></span>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </motion.div>
       )}
     </div>
