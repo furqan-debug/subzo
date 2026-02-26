@@ -14,7 +14,175 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          currency: string
+          display_name: string | null
+          id: string
+          reminder_days_before: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          currency?: string
+          display_name?: string | null
+          id?: string
+          reminder_days_before?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          currency?: string
+          display_name?: string | null
+          id?: string
+          reminder_days_before?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reminders: {
+        Row: {
+          created_at: string
+          days_before: number
+          enabled: boolean
+          id: string
+          subscription_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          days_before?: number
+          enabled?: boolean
+          id?: string
+          subscription_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          days_before?: number
+          enabled?: boolean
+          id?: string
+          subscription_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminders_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_catalog: {
+        Row: {
+          billing_cycle: string | null
+          cancel_url: string | null
+          cancellation_steps: string[] | null
+          category: string
+          created_at: string
+          default_price: number | null
+          id: string
+          logo_url: string | null
+          name: string
+          website_url: string | null
+        }
+        Insert: {
+          billing_cycle?: string | null
+          cancel_url?: string | null
+          cancellation_steps?: string[] | null
+          category: string
+          created_at?: string
+          default_price?: number | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          website_url?: string | null
+        }
+        Update: {
+          billing_cycle?: string | null
+          cancel_url?: string | null
+          cancellation_steps?: string[] | null
+          category?: string
+          created_at?: string
+          default_price?: number | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          amount: number
+          billing_cycle: string
+          cancel_url: string | null
+          cancellation_steps: string[] | null
+          catalog_id: string | null
+          category: string
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          next_renewal: string
+          notes: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          billing_cycle?: string
+          cancel_url?: string | null
+          cancellation_steps?: string[] | null
+          catalog_id?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          next_renewal: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          billing_cycle?: string
+          cancel_url?: string | null
+          cancellation_steps?: string[] | null
+          catalog_id?: string | null
+          category?: string
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          next_renewal?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_catalog_id_fkey"
+            columns: ["catalog_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
