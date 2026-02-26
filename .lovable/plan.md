@@ -1,29 +1,42 @@
 
 
-## Plan: Clean Up Branding & Fix Capacitor App ID
+## Problem Analysis
 
-### Problem
-The Capacitor config uses an invalid App ID (`app.lovable.8f6f7216fd234557bf5f8e7ab00fbcd0`) which fails Android/iOS validation. Multiple files also reference "Lovable" branding that should be replaced with the app's actual name "Subzo".
+The app opens the **Lovable platform login page** (lovable.dev/login) instead of your Subzo auth screen. This happens because:
 
-### Changes
+1. **`capacitor.config.ts`** has `server.url` pointing to `lovableproject.com` — this is the development preview URL which sits behind Lovable's own authentication wall. When the native app loads it, Lovable redirects to its own login page.
 
-**1. `capacitor.config.ts`** — Fix App ID and app name:
-- `appId`: `'com.subzo.app'`
-- `appName`: `'Subzo'`
-- Keep server URL as-is (it's the preview URL for hot-reload, not branding)
+2. **Google OAuth uses redirect flow** — on mobile/Capacitor, `signInWithOAuth` with redirect opens an external browser, which loses context of the app. It needs a popup-based or in-app browser approach instead.
 
-**2. `index.html`** — Replace all branding:
-- Title: `Subzo`
-- Description: `Smart subscription tracker`
-- Remove Lovable og:image, twitter:site references
-- Clean up TODO comments
+## Plan
 
-**3. `vite.config.ts`** — The `lovable-tagger` import is a dev-only tool used internally by the platform. It only runs in development mode and is not included in production builds. It will be left as-is since removing it could break the development environment.
+### 1. Fix Capacitor config — remove remote server URL
 
-**4. `README.md`** — Rewrite with clean project documentation for Subzo (no Lovable references).
+Remove the `server` block entirely from `capacitor.config.ts`. The app will load from the local `dist/` directory (which is the correct production behavior). The `server.url` was only meant for development hot-reload and causes the Lovable login redirect issue.
+
+```typescript
+const config: CapacitorConfig = {
+  appId: 'com.subzo.app',
+  appName: 'Subzo',
+  webDir: 'dist',
+};
+```
+
+### 2. Fix Google OAuth for Capacitor — use popup flow
+
+Update `signInWithGoogle` in `useAuth.tsx` to use `skipBrowserRedirect: true` and open the OAuth URL in an in-app browser window instead of redirecting. This keeps auth within the app context.
+
+### 3. After pulling changes
+
+User must:
+1. `git pull`
+2. `npm run build`
+3. `npx cap sync`
+4. `npx cap run android`
+
+The app will now load your Subzo auth page from local files, and Google sign-in will work within the app.
 
 ### Files Modified
-- `capacitor.config.ts`
-- `index.html`
-- `README.md`
+- `capacitor.config.ts` — remove `server` block
+- `src/hooks/useAuth.tsx` — popup-based Google OAuth for mobile
 
