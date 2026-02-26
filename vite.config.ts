@@ -21,5 +21,6 @@ export default defineConfig(({ mode }) => ({
   },
   optimizeDeps: {
     include: ["react", "react-dom", "react/jsx-runtime", "@tanstack/react-query"],
+    exclude: ["@capacitor/app"],
   },
 }));
