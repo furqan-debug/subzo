@@ -2,6 +2,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { Home, PlusCircle, BarChart3, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Home' },
@@ -16,25 +17,34 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      {/* Ambient background glow */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-primary/5 blur-[128px] animate-pulse-glow" />
+        <div className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-accent/5 blur-[128px] animate-pulse-glow" style={{ animationDelay: '1s' }} />
+      </div>
+
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-border/50 bg-background/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-border/30 bg-background/60 backdrop-blur-2xl">
         <div className="mx-auto flex h-14 max-w-lg items-center justify-between px-4">
-          <h1 className="font-display text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          <h1 className="font-display text-xl font-bold text-gradient">
             Subzo
           </h1>
-          <button onClick={signOut} className="text-muted-foreground hover:text-foreground transition-colors">
-            <LogOut className="h-5 w-5" />
+          <button
+            onClick={signOut}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all"
+          >
+            <LogOut className="h-4 w-4" />
           </button>
         </div>
       </header>
 
       {/* Content */}
-      <main className="flex-1 mx-auto w-full max-w-lg px-4 py-6 pb-24">
+      <main className="relative z-10 flex-1 mx-auto w-full max-w-lg px-4 py-6 pb-24">
         {children}
       </main>
 
       {/* Bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/50 bg-background/80 backdrop-blur-xl">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/30 bg-background/60 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-lg items-center justify-around py-2">
           {navItems.map(({ to, icon: Icon, label }) => {
             const isActive = location.pathname === to;
@@ -43,12 +53,25 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
                 key={to}
                 to={to}
                 className={cn(
-                  'flex flex-col items-center gap-0.5 px-3 py-1 text-xs transition-colors',
+                  'relative flex flex-col items-center gap-0.5 px-4 py-1.5 text-xs transition-all duration-300',
                   isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                 )}
               >
-                <Icon className={cn('h-5 w-5', isActive && 'drop-shadow-[0_0_8px_hsl(var(--primary)/0.5)]')} />
-                <span>{label}</span>
+                {isActive && (
+                  <motion.div
+                    layoutId="nav-indicator"
+                    className="absolute -top-2.5 h-0.5 w-6 rounded-full bg-gradient-to-r from-primary to-accent"
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <Icon className={cn(
+                  'h-5 w-5 transition-all duration-300',
+                  isActive && 'drop-shadow-[0_0_10px_hsl(var(--primary)/0.6)]'
+                )} />
+                <span className={cn(
+                  'transition-all duration-300',
+                  isActive && 'font-medium'
+                )}>{label}</span>
               </NavLink>
             );
           })}
