@@ -1,7 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 
-const GOOGLE_WEB_CLIENT_ID = '710406899937-8l7n9kdlvc2l4t5hvl3qf9t9qj4lc5pn.apps.googleusercontent.com';
+const GOOGLE_WEB_CLIENT_ID = '710406899937-8i7n9kdivc214t5hvl3qf9t9oj4lc5pn.apps.googleusercontent.com';
 
 let initialized = false;
 
