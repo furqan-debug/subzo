@@ -34,13 +34,6 @@ async function signInNative(): Promise<{ error: { message: string } | null }> {
   try {
     const { SocialLogin } = await import('@capgo/capacitor-social-login');
 
-    // Clear stale credentials to avoid cached session issues
-    try {
-      await SocialLogin.logout({ provider: 'google' });
-    } catch {
-      // Ignore logout errors — user may not have been logged in
-    }
-
     const response = await SocialLogin.login({
       provider: 'google',
       options: {},
