@@ -1,10 +1,6 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
-
-// Web Client ID from your Google Cloud Console (Web Sabzo)
-const GOOGLE_WEB_CLIENT_ID = '710406899937-8l7n9kdlvc2l4t5hvl3qf9t9qj4lc5pn.apps.googleusercontent.com';
 
 interface AuthContextType {
   session: Session | null;
@@ -12,7 +8,6 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signInWithGoogle: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
 }
@@ -54,60 +49,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return { error };
   };
 
-  const signInWithGoogle = async () => {
-    if (Capacitor.isNativePlatform()) {
-      try {
-        const { SocialLogin } = await import('@capgo/capacitor-social-login');
-
-        await SocialLogin.initialize({
-          google: {
-            webClientId: GOOGLE_WEB_CLIENT_ID,
-            mode: 'online',
-          },
-        });
-
-        const response = await SocialLogin.login({
-          provider: 'google',
-          options: {},
-        });
-
-        const idToken = (response as any)?.result?.idToken;
-        if (!idToken) {
-          return { error: { message: 'No ID token received from Google' } };
-        }
-
-        const { error } = await supabase.auth.signInWithIdToken({
-          provider: 'google',
-          token: idToken,
-        });
-
-        return { error };
-      } catch (err: any) {
-        console.error('Native Google sign-in error:', err);
-        const message = err?.message || 'Google sign-in failed on native device';
-        return { error: { message } };
-      }
-    } else {
-      // Web: use standard OAuth redirect
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin,
-          skipBrowserRedirect: true,
-        },
-      });
-
-      if (data?.url) {
-        const popup = window.open(data.url, '_blank', 'noopener,noreferrer');
-        if (!popup) {
-          window.location.href = data.url;
-        }
-      }
-
-      return { error };
-    }
-  };
-
   const signOut = async () => {
     await supabase.auth.signOut();
   };
@@ -120,7 +61,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, loading, signUp, signIn, signInWithGoogle, signOut, resetPassword }}>
+    <AuthContext.Provider value={{ session, user, loading, signUp, signIn, signOut, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );

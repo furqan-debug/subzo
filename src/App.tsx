@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { useDeepLinkHandler } from "@/hooks/useDeepLinkHandler";
+import { initializeGoogleAuth } from "@/hooks/useGoogleAuth";
+import { useEffect } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AppLayout from "@/components/AppLayout";
 import Auth from "./pages/Auth";
@@ -21,6 +23,10 @@ const queryClient = new QueryClient();
 
 const AppRoutes = () => {
   useDeepLinkHandler();
+
+  useEffect(() => {
+    initializeGoogleAuth();
+  }, []);
 
   return (
     <Routes>
