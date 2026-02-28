@@ -1,42 +1,67 @@
 
 
-## Problem Analysis
+## Redesign Google Auth: Separate Hook + Reusable Button
 
-The app opens the **Lovable platform login page** (lovable.dev/login) instead of your Subzo auth screen. This happens because:
+### What Changes
 
-1. **`capacitor.config.ts`** has `server.url` pointing to `lovableproject.com` — this is the development preview URL which sits behind Lovable's own authentication wall. When the native app loads it, Lovable redirects to its own login page.
+Restructure the Google sign-in into a clean, portable architecture matching your other app's proven pattern.
 
-2. **Google OAuth uses redirect flow** — on mobile/Capacitor, `signInWithOAuth` with redirect opens an external browser, which loses context of the app. It needs a popup-based or in-app browser approach instead.
+### New Files
 
-## Plan
+**1. `src/hooks/useGoogleAuth.ts`** -- Self-contained hook
+- Exports `initializeGoogleAuth()` -- called once on app startup (native only)
+- Exports `signInWithGoogle()` -- handles both native and web flows
+- Native flow: logout stale session first, then `SocialLogin.login()`, extract `idToken`, exchange via `supabase.auth.signInWithIdToken()`
+- Web flow: standard `supabase.auth.signInWithOAuth()` redirect (no popup, direct redirect to `window.location.origin`)
+- Graceful error handling for cancellation, reauth errors (`[16]`), and missing tokens
 
-### 1. Fix Capacitor config — remove remote server URL
+**2. `src/components/GoogleSignInButton.tsx`** -- Reusable UI button
+- Calls `signInWithGoogle()` from the hook
+- Shows loading spinner while authenticating
+- Displays toast on error
+- Can be dropped into any login/signup form
 
-Remove the `server` block entirely from `capacitor.config.ts`. The app will load from the local `dist/` directory (which is the correct production behavior). The `server.url` was only meant for development hot-reload and causes the Lovable login redirect issue.
+### Modified Files
 
-```typescript
-const config: CapacitorConfig = {
-  appId: 'com.subzo.app',
-  appName: 'Subzo',
-  webDir: 'dist',
-};
+**3. `src/hooks/useAuth.tsx`**
+- Remove all Google sign-in logic (the `signInWithGoogle` method and the `GOOGLE_WEB_CLIENT_ID` constant)
+- Remove `signInWithGoogle` from `AuthContextType` and the provider value
+- Keep email/password auth, signOut, resetPassword unchanged
+
+**4. `src/App.tsx`**
+- Call `initializeGoogleAuth()` at app startup inside `AppRoutes` component (runs once, only initializes on native)
+
+**5. `src/pages/Auth.tsx`**
+- Replace inline Google button with `<GoogleSignInButton />`
+- Remove the manual `signInWithGoogle` call and toast logic for Google
+
+### Native Flow Detail
+
+```text
+User taps button
+  --> SocialLogin.logout() (clear stale credentials)
+  --> SocialLogin.login({ provider: 'google' })
+  --> Native account picker appears (no browser)
+  --> Returns idToken
+  --> supabase.auth.signInWithIdToken({ provider: 'google', token: idToken })
+  --> Session created, onAuthStateChange fires
 ```
 
-### 2. Fix Google OAuth for Capacitor — use popup flow
+### Web Flow Detail
 
-Update `signInWithGoogle` in `useAuth.tsx` to use `skipBrowserRedirect: true` and open the OAuth URL in an in-app browser window instead of redirecting. This keeps auth within the app context.
+```text
+User clicks button
+  --> supabase.auth.signInWithOAuth({ provider: 'google', redirectTo: origin })
+  --> Browser redirects to Google
+  --> Google redirects back to app
+  --> Supabase handles session from URL hash
+```
 
-### 3. After pulling changes
-
-User must:
-1. `git pull`
-2. `npm run build`
-3. `npx cap sync`
-4. `npx cap run android`
-
-The app will now load your Subzo auth page from local files, and Google sign-in will work within the app.
-
-### Files Modified
-- `capacitor.config.ts` — remove `server` block
-- `src/hooks/useAuth.tsx` — popup-based Google OAuth for mobile
+### Key Improvements Over Current Code
+- **Logout before login** on native to prevent stale credential issues
+- **No popup window** on web (direct redirect, more reliable)
+- **Initialization separated** from sign-in (called once at startup)
+- **Cancellation handling** -- user dismissing picker is not treated as an error
+- **Reusable button component** -- drop into any page
+- **Portable hook** -- self-contained, easy to copy to other projects
 
