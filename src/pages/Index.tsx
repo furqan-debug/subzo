@@ -35,7 +35,7 @@ const Index = () => {
     return activeSubscriptions
       .filter((s) => {
         const days = differenceInDays(parseISO(s.next_renewal), now);
-        return days >= 0 && days <= 7;
+        return days >= 0 && days <= 14;
       })
       .sort((a, b) => parseISO(a.next_renewal).getTime() - parseISO(b.next_renewal).getTime());
   }, [activeSubscriptions]);
@@ -125,7 +125,7 @@ const Index = () => {
         </motion.div>
       )}
 
-      {/* Upcoming renewals */}
+      {/* Upcoming renewals - horizontal scroll widget */}
       {upcomingRenewals.length > 0 && (
         <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
@@ -134,40 +134,30 @@ const Index = () => {
             </div>
             Upcoming renewals
           </h2>
-          <div className="space-y-2">
-            {upcomingRenewals.map((sub, i) => {
+          <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 -mx-1 px-1 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+            {upcomingRenewals.map((sub) => {
               const daysLeft = differenceInDays(parseISO(sub.next_renewal), new Date());
               return (
-                <motion.div
-                  key={sub.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                >
-                  <Link to={`/subscription/${sub.id}`}>
-                    <motion.div whileTap={{ scale: 0.98 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
-                      <Card className="group glass-card transition-all duration-300 hover:border-primary/30">
-                        <CardContent className="flex items-center gap-3 p-3 relative z-10">
-                          <div className="icon-premium h-10 w-10 shrink-0">
-                            {sub.logo_url ? (
-                              <img src={sub.logo_url} alt="" className="h-6 w-6 object-contain" />
-                            ) : (
-                              <span className="text-sm font-semibold text-muted-foreground">{sub.name?.[0] ?? '?'}</span>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{sub.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {daysLeft === 0 ? 'Renews today' : daysLeft === 1 ? 'Renews tomorrow' : `In ${daysLeft} days`}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-bold">${Number(sub.amount).toFixed(2)}</p>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  </Link>
-                </motion.div>
+                <Link key={sub.id} to={`/subscription/${sub.id}`} className="snap-start shrink-0">
+                  <motion.div whileTap={{ scale: 0.96 }}>
+                    <div className="glass-card w-[140px] p-3">
+                      <div className="relative z-10 flex flex-col items-center text-center gap-2">
+                        <div className="icon-premium h-10 w-10">
+                          {sub.logo_url ? (
+                            <img src={sub.logo_url} alt="" className="h-6 w-6 object-contain" />
+                          ) : (
+                            <span className="text-sm font-semibold text-muted-foreground">{sub.name?.[0] ?? '?'}</span>
+                          )}
+                        </div>
+                        <p className="text-xs font-medium truncate w-full">{sub.name}</p>
+                        <span className="text-[10px] font-semibold text-warning">
+                          {daysLeft === 0 ? 'Today' : daysLeft === 1 ? 'Tomorrow' : `Renew in ${daysLeft}d`}
+                        </span>
+                        <p className="text-xs font-bold">${Number(sub.amount).toFixed(2)}<span className="text-muted-foreground font-normal">/{sub.billing_cycle === 'monthly' ? 'mo' : sub.billing_cycle === 'yearly' ? 'yr' : 'wk'}</span></p>
+                      </div>
+                    </div>
+                  </motion.div>
+                </Link>
               );
             })}
           </div>
