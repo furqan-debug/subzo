@@ -181,6 +181,7 @@ const AddSubscription = () => {
                               alt={`${item.name} logo`}
                               className="h-5 w-5 object-contain"
                               loading="lazy"
+                              decoding="async"
                               onError={() => handleLogoError(item)}
                             />
                           ) : (

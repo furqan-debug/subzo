@@ -81,6 +81,7 @@
       0 0 0 1px hsl(var(--border) / 0.5),
       0 4px 24px -4px hsl(0 0% 0% / 0.3),
       inset 0 1px 0 0 hsl(var(--foreground) / 0.03);
+    will-change: transform;
   }
 
 
@@ -180,6 +181,11 @@ html {
 
 * {
   -webkit-touch-callout: none;
+}
+
+/* Remove 300ms tap delay on mobile */
+button, a, input, select, textarea, [role="button"] {
+  touch-action: manipulation;
 }
 
 /* Custom scrollbar */
