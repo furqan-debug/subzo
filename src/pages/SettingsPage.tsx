@@ -57,12 +57,24 @@ const SettingsPage = () => {
       {/* Profile card */}
       <div className="glass-card p-5">
         <div className="flex items-center gap-4 relative z-10">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/20">
-            <User className="h-6 w-6 text-primary" />
+          <div className="h-14 w-14 shrink-0 rounded-full border-2 border-primary/30 overflow-hidden bg-secondary flex items-center justify-center">
+            {user?.user_metadata?.avatar_url ? (
+              <img
+                src={user.user_metadata.avatar_url}
+                alt="Profile"
+                className="h-full w-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <User className="h-6 w-6 text-muted-foreground" />
+            )}
           </div>
-          <div>
-            <p className="font-medium">{user?.email}</p>
-            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+          <div className="min-w-0 flex-1">
+            {user?.user_metadata?.full_name && (
+              <p className="font-display font-semibold text-base truncate">{user.user_metadata.full_name}</p>
+            )}
+            <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
               <span className="h-1.5 w-1.5 rounded-full bg-success" />
               Signed in
             </p>
