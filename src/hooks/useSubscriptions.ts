@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { scheduleRenewalNotifications } from './useNotifications';
 
 export interface Subscription {
   id: string;
@@ -78,7 +79,9 @@ export const useAddSubscription = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['subscriptions'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
+    },
   });
 };
 

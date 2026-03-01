@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 import { LogOut, User, Settings, Bell, Globe, Crown, Loader2 } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
+import { useSubscriptions } from '@/hooks/useSubscriptions';
+import { scheduleRenewalNotifications } from '@/hooks/useNotifications';
 import { SettingsSkeleton } from '@/components/SkeletonLoaders';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,6 +23,7 @@ const planLabels: Record<string, string> = {
 const SettingsPage = () => {
   const { user, signOut } = useAuth();
   const { profile, isLoading: loading, subscriptionPlan } = useProfile();
+  const { data: subscriptions } = useSubscriptions();
   const navigate = useNavigate();
   const [currency, setCurrency] = useState('USD');
   const [reminderDays, setReminderDays] = useState('3');
@@ -40,8 +43,15 @@ const SettingsPage = () => {
       .from('profiles')
       .update({ currency, reminder_days_before: parseInt(reminderDays) })
       .eq('user_id', user.id);
-    if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    else toast({ title: 'Settings saved!' });
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Settings saved!' });
+      // Re-schedule notifications with new reminder days
+      if (subscriptions) {
+        scheduleRenewalNotifications(subscriptions, parseInt(reminderDays), currency);
+      }
+    }
     setSaving(false);
   };
 
