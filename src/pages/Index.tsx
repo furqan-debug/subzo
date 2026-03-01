@@ -96,23 +96,28 @@ const Index = () => {
 
       {/* Hero spending card */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <div className="glass-card p-6">
+        <div className="hero-spending-card relative overflow-hidden rounded-2xl border border-primary/20 p-6">
+          {/* Ambient glow layers */}
+          <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-primary/15 blur-3xl" />
+          <div className="absolute -bottom-16 -left-16 h-36 w-36 rounded-full bg-accent/10 blur-3xl" />
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+
           <div className="relative z-10">
-            <div className="mb-3">
-              <p className="text-xs text-muted-foreground font-medium tracking-wide uppercase">Monthly spending</p>
+            <div className="mb-4">
+              <p className="text-[10px] text-muted-foreground font-medium tracking-[0.2em] uppercase">Monthly spending</p>
             </div>
             <p className="font-display text-5xl font-bold tracking-tight text-gradient">
               <AnimatedNumber value={monthlyTotal} prefix="$" />
             </p>
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-sm text-muted-foreground/70 mt-2">
               {activeSubscriptions.length} active subscription{activeSubscriptions.length !== 1 ? 's' : ''}
             </p>
-            <div className="mt-4 flex items-center gap-3">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-medium text-primary">
+            <div className="mt-5 flex items-center gap-3">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/8 border border-primary/15 px-3 py-1.5 text-xs font-medium text-primary backdrop-blur-sm">
                 <TrendingUp className="h-3 w-3" />
                 ${(monthlyTotal * 12).toFixed(0)}/yr
               </span>
-              <Link to="/analytics" className="inline-flex items-center gap-1 text-xs text-accent hover:text-accent-glow transition-colors">
+              <Link to="/analytics" className="inline-flex items-center gap-1 text-xs text-accent/80 hover:text-accent transition-colors">
                 View insights <ArrowUpRight className="h-3 w-3" />
               </Link>
             </div>
