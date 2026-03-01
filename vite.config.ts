@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => ({
     dedupe: ["react", "react-dom", "react/jsx-runtime", "@tanstack/react-query"],
   },
   optimizeDeps: {
-    include: ["react", "react-dom", "react/jsx-runtime", "@tanstack/react-query"],
+    include: ["react", "react-dom", "react/jsx-runtime", "@tanstack/react-query", "react-router-dom"],
     exclude: ["@capacitor/app"],
   },
 }));
