@@ -175,7 +175,7 @@ const Index = () => {
                       <div className="relative z-10 flex flex-col items-center text-center gap-2">
                         <div className="icon-premium h-10 w-10">
                           {sub.logo_url ? (
-                            <img src={sub.logo_url} alt="" className="h-6 w-6 object-contain" />
+                            <img src={sub.logo_url} alt="" className="h-6 w-6 object-contain" loading="lazy" decoding="async" />
                           ) : (
                             <span className="text-sm font-semibold text-muted-foreground">{sub.name?.[0] ?? '?'}</span>
                           )}
@@ -223,7 +223,7 @@ const Index = () => {
                         <CardContent className="flex items-center gap-3 p-3 relative z-10">
                           <div className="icon-premium h-10 w-10 shrink-0">
                             {sub.logo_url ? (
-                              <img src={sub.logo_url} alt="" className="h-6 w-6 object-contain" />
+                              <img src={sub.logo_url} alt="" className="h-6 w-6 object-contain" loading="lazy" decoding="async" />
                             ) : (
                               <span className="text-sm font-semibold text-muted-foreground">{sub.name?.[0] ?? '?'}</span>
                             )}

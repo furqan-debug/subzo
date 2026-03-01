@@ -18,7 +18,6 @@ export const useProfile = () => {
       return data;
     },
     enabled: !!user,
-    staleTime: 30000,
   });
 
   const selectPlan = async (plan: 'monthly' | '6month' | 'annual') => {
