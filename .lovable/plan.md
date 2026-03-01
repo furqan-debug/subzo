@@ -1,84 +1,88 @@
 
-# Smoothness and Value Upgrade for Subzo
 
-## Overview
-Enhance the app with smoother page transitions, skeleton loading states, pull-to-refresh feel, richer data insights, and small quality-of-life features that make the app feel polished and worth opening daily.
+# Speed and Performance Optimization
 
----
-
-## 1. Smooth Page Transitions with AnimatePresence
-
-Wrap the Routes in `AnimatePresence` with a shared page transition wrapper so navigating between pages has a fluid crossfade instead of an instant swap.
-
-- Create a `PageTransition` wrapper component using framer-motion (`opacity` + slight `y` shift, 200ms)
-- Wrap each route's content in `PageTransition` keyed by `location.pathname`
+## Problem Analysis
+The app feels slow due to several compounding issues: render-blocking font loading, expensive CSS effects (128px blur with continuous animation), excessive per-item framer-motion animations, no query caching (data re-fetches on every navigation), and AnimatePresence blocking page transitions.
 
 ---
 
-## 2. Skeleton Loading States (instead of spinners)
+## 1. Remove render-blocking Google Fonts import
 
-Replace every `Loader2 spinner` with contextual skeleton placeholders that match the layout of the content being loaded. This feels significantly smoother.
+Replace the CSS `@import` in `src/index.css` with a `<link rel="preconnect">` + `<link rel="stylesheet">` in `index.html`. This prevents the CSS from blocking the initial render.
 
-- **Index page**: Skeleton hero card + 3 skeleton subscription rows
-- **Analytics page**: Skeleton stat cards + skeleton pie chart area
-- **Settings page**: Skeleton profile card + skeleton preference fields
-- **Subscription detail**: Skeleton header + skeleton detail grid
-
-Uses the existing `Skeleton` component from `src/components/ui/skeleton.tsx`.
+**Files:** `index.html`, `src/index.css`
 
 ---
 
-## 3. Animated Number Counter for Monthly Spending
+## 2. Remove expensive ambient background blur
 
-The hero spending card's dollar amount will animate from 0 to the actual value using a counting animation (framer-motion `useSpring`), making the dashboard feel alive when it loads.
+The `AppLayout.tsx` has two 384px divs with `blur-[128px]` and `animate-pulse-glow` running continuously. These are extremely expensive for mobile GPUs. Remove them entirely.
 
----
-
-## 4. Swipe-to-Delete on Subscription Cards (Index page)
-
-Add horizontal swipe gesture on subscription cards (using framer-motion `drag="x"`) that reveals a red delete zone. Swiping past a threshold triggers delete with the existing confetti/sound feedback. This is a native-app-like interaction that adds significant perceived quality.
+**File:** `src/components/AppLayout.tsx`
 
 ---
 
-## 5. Quick Stats Bar on Home Page
+## 3. Simplify glass-card CSS
 
-Add a compact row of 3 micro-stats below the hero card:
-- **Cheapest** subscription name + price
-- **Most expensive** subscription name + price  
-- **Days until next renewal** countdown
+Remove the `::before` pseudo-element gradient overlay from every `.glass-card`. This creates an extra compositing layer on every single card in the app. Use a simpler single-gradient background instead.
 
-These give immediate value each time the user opens the app.
+**File:** `src/index.css`
 
 ---
 
-## 6. "Money Saved" Section in Analytics
+## 4. Add staleTime to React Query hooks
 
-Add a new card showing estimated savings from cancelled subscriptions (sum of cancelled subscription amounts projected over time since cancellation). This makes users feel good about using the app and gives a reason to come back.
+Currently `useSubscriptions`, `useProfile`, and `useCatalog` all have `staleTime: 0` (default), causing re-fetches on every navigation. Set `staleTime: 30000` (30 seconds) so data is reused when switching between pages.
 
----
-
-## 7. Haptic-Like Micro-Interactions
-
-- Button press scale animation (0.97 on tap) across all interactive cards
-- Subtle spring bounce on nav tab switch
-- Card hover lift effect with shadow progression
+**Files:** `src/hooks/useSubscriptions.ts`, `src/hooks/useProfile.ts`
 
 ---
 
-## Technical Details
+## 5. Remove AnimatePresence wait mode
 
-### Files to create:
-- `src/components/PageTransition.tsx` -- AnimatePresence wrapper
-- `src/components/SkeletonLoaders.tsx` -- All skeleton variants (Index, Analytics, Settings, Detail)
-- `src/components/AnimatedNumber.tsx` -- Counting number animation component
-- `src/components/SwipeableSubscriptionCard.tsx` -- Drag-to-delete card wrapper
+Change `AnimatePresence mode="wait"` to just `AnimatePresence` in `App.tsx`. The "wait" mode delays showing the new page until the old one finishes its exit animation, making every navigation feel sluggish.
 
-### Files to modify:
-- `src/App.tsx` -- Add AnimatePresence + PageTransition around Routes
-- `src/pages/Index.tsx` -- Use skeletons, AnimatedNumber, SwipeableCard, add quick stats bar
-- `src/pages/Analytics.tsx` -- Use skeletons, add "Money Saved" card (from cancelled subs)
-- `src/pages/SettingsPage.tsx` -- Use skeletons
-- `src/pages/SubscriptionDetail.tsx` -- Use skeletons
-- `src/components/AppLayout.tsx` -- Enhanced nav spring animation
-- `src/hooks/useSubscriptions.ts` -- Include cancelled subs in query for savings calculation
-- `src/index.css` -- Add smooth scroll behavior, touch-action optimizations
+**File:** `src/App.tsx`
+
+---
+
+## 6. Reduce per-item staggered animations
+
+Remove individual `delay` props from list items in `Index.tsx`, `Analytics.tsx`, and `AddSubscription.tsx`. Instead, animate the parent container once. Individual item delays of `0.02-0.05s * N items` add up significantly.
+
+**Files:** `src/pages/Index.tsx`, `src/pages/Analytics.tsx`, `src/pages/AddSubscription.tsx`
+
+---
+
+## 7. Fix AnimatedNumber ref warning
+
+The console shows "Function components cannot be given refs" for `AnimatedNumber`. While not a perf issue per se, React warnings slow down dev mode. The component already uses an internal ref correctly -- the warning comes from framer-motion trying to pass a ref. No code change needed as this is a dev-only warning, but noted.
+
+---
+
+## 8. Remove SettingsPage duplicate Supabase call
+
+`SettingsPage` makes its own `supabase.from('profiles').select()` call in a `useEffect`, while `useProfile` already fetches the same data. Remove the duplicate and use the profile from `useProfile` instead.
+
+**File:** `src/pages/SettingsPage.tsx`
+
+---
+
+## 9. Simplify PageTransition
+
+Reduce the transition wrapper to just a simple opacity fade (remove the y-axis shift) and shorten duration to 100ms.
+
+**File:** `src/components/PageTransition.tsx`
+
+---
+
+## Summary of expected impact
+
+- **Font loading**: Eliminates ~200-500ms render block on first load
+- **Blur removal**: Major GPU savings, especially on mobile/Android
+- **staleTime**: Eliminates redundant network requests on every navigation
+- **AnimatePresence**: Pages appear instantly instead of waiting for exit animation
+- **Stagger removal**: Lists render immediately instead of trickling in
+- **Duplicate query removal**: One fewer Supabase request per settings visit
+
