@@ -218,16 +218,6 @@ const Index = () => {
         )}
       </section>
 
-      {/* FAB */}
-      {activeSubscriptions.length > 0 && (
-        <Link to="/add" className="fixed bottom-20 right-4 z-30 sm:right-[calc(50%-224px+16px)]">
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button size="lg" className="h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90">
-              <Plus className="h-6 w-6" />
-            </Button>
-          </motion.div>
-        </Link>
-      )}
     </div>
   );
 };
