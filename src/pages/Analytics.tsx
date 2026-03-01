@@ -70,7 +70,7 @@ const Analytics = () => {
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3">
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileTap={{ scale: 0.97 }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} whileTap={{ scale: 0.97 }}>
           <div className="glass-card p-4">
             <div className="relative z-10">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 border border-primary/20 mb-3">
@@ -83,7 +83,7 @@ const Analytics = () => {
             </div>
           </div>
         </motion.div>
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} whileTap={{ scale: 0.97 }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} whileTap={{ scale: 0.97 }}>
           <div className="glass-card p-4">
             <div className="relative z-10">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 border border-accent/20 mb-3">
@@ -100,7 +100,7 @@ const Analytics = () => {
 
       {/* Money saved */}
       {moneySaved > 0 && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <div className="glass-card border-success/20 p-4">
             <div className="flex items-center gap-3 relative z-10">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-success/10 border border-success/20">
@@ -120,7 +120,7 @@ const Analytics = () => {
 
       {/* Most expensive */}
       {mostExpensive && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} whileTap={{ scale: 0.97 }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} whileTap={{ scale: 0.97 }}>
           <div className="glass-card glow-primary border-primary/20 p-4">
             <div className="flex items-center gap-3 relative z-10">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 border border-primary/20">
@@ -137,7 +137,7 @@ const Analytics = () => {
 
       {/* Category chart */}
       {byCategory.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <div className="glass-card p-5">
             <div className="relative z-10">
               <h3 className="font-display font-semibold mb-4">Spending by category</h3>

@@ -96,7 +96,7 @@ const Index = () => {
 
       {/* Quick stats bar */}
       {quickStats && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <div className="grid grid-cols-3 gap-2">
             <div className="glass-card p-3 relative z-10">
               <div className="relative z-10">
@@ -127,7 +127,7 @@ const Index = () => {
 
       {/* Upcoming renewals */}
       {upcomingRenewals.length > 0 && (
-        <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+        <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <h2 className="font-display text-lg font-semibold mb-3 flex items-center gap-2">
             <div className="flex h-6 w-6 items-center justify-center rounded-md bg-warning/10">
               <Calendar className="h-3.5 w-3.5 text-warning" />
@@ -140,9 +140,8 @@ const Index = () => {
               return (
                 <motion.div
                   key={sub.id}
-                  initial={{ opacity: 0, x: -12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.15 + i * 0.05 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                 >
                   <Link to={`/subscription/${sub.id}`}>
                     <motion.div whileTap={{ scale: 0.98 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
@@ -176,7 +175,7 @@ const Index = () => {
       )}
 
       {/* All subscriptions */}
-      <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+      <section>
         <h2 className="font-display text-lg font-semibold mb-3">Your subscriptions</h2>
         {activeSubscriptions.length === 0 ? (
           <div className="glass-card p-8">
@@ -193,11 +192,8 @@ const Index = () => {
         ) : (
           <div className="space-y-2">
             {activeSubscriptions.map((sub, i) => (
-              <motion.div
+              <div
                 key={sub.id}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.25 + i * 0.03 }}
               >
                 <SwipeableSubscriptionCard onDelete={() => handleSwipeDelete(sub.id, sub.name)}>
                   <Link to={`/subscription/${sub.id}`}>
@@ -226,11 +222,11 @@ const Index = () => {
                     </motion.div>
                   </Link>
                 </SwipeableSubscriptionCard>
-              </motion.div>
+              </div>
             ))}
           </div>
         )}
-      </motion.section>
+      </section>
 
       {/* FAB */}
       {activeSubscriptions.length > 0 && (

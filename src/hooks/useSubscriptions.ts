@@ -46,6 +46,7 @@ export const useSubscriptions = () => {
       return data as Subscription[];
     },
     enabled: !!user,
+    staleTime: 30000,
   });
 };
 
@@ -59,6 +60,7 @@ export const useCatalog = (search?: string) => {
       if (error) throw error;
       return data as CatalogItem[];
     },
+    staleTime: 30000,
   });
 };
 
