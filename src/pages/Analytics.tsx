@@ -141,36 +141,58 @@ const Analytics = () => {
           <div className="glass-card p-5">
             <div className="relative z-10">
               <h3 className="font-display font-semibold mb-4">Spending by category</h3>
-              <div className="h-56">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={byCategory} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={3} dataKey="value" strokeWidth={0}>
-                      {byCategory.map((_, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'hsl(230, 20%, 10%)',
-                        border: '1px solid hsl(230, 15%, 20%)',
-                        borderRadius: '12px',
-                        boxShadow: '0 8px 32px hsl(0 0% 0% / 0.4)',
-                      }}
-                      formatter={(value: number) => [`$${value.toFixed(2)}/mo`]}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="mt-4 space-y-2.5">
-                {byCategory.map((cat, i) => (
-                  <div key={cat.name} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2.5">
-                      <div className="h-3 w-3 rounded-full ring-2 ring-offset-1 ring-offset-card" style={{ backgroundColor: COLORS[i % COLORS.length], boxShadow: `0 0 8px ${COLORS[i % COLORS.length]}40` }} />
-                      <span className="text-foreground/80">{cat.name}</span>
-                    </div>
-                    <span className="font-medium">${cat.value.toFixed(2)}<span className="text-muted-foreground text-xs">/mo</span></span>
+              <div className="flex items-center gap-6">
+                {/* Donut with center label */}
+                <div className="relative h-36 w-36 flex-shrink-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={byCategory}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={42}
+                        outerRadius={62}
+                        paddingAngle={2}
+                        dataKey="value"
+                        strokeWidth={0}
+                        cornerRadius={3}
+                      >
+                        {byCategory.map((_, i) => (
+                          <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                  {/* Center label */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Total</span>
+                    <span className="font-display text-lg font-bold text-gradient">${Math.round(monthlyTotal)}</span>
+                    <span className="text-[10px] text-muted-foreground">/mo</span>
                   </div>
-                ))}
+                </div>
+                {/* Legend with progress bars */}
+                <div className="flex-1 space-y-2">
+                  {byCategory.map((cat, i) => {
+                    const pct = monthlyTotal > 0 ? Math.round((cat.value / monthlyTotal) * 100) : 0;
+                    return (
+                      <div key={cat.name} className="space-y-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2">
+                            <div className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                            <span className="text-foreground/80">{cat.name}</span>
+                          </div>
+                          <span className="font-medium text-muted-foreground">{pct}%</span>
+                        </div>
+                        <div className="h-1 rounded-full bg-secondary overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-700"
+                            style={{ width: `${pct}%`, backgroundColor: COLORS[i % COLORS.length] }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
