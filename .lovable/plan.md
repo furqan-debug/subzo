@@ -1,88 +1,67 @@
 
 
-# Speed and Performance Optimization
+# Push Notifications for Subscription Renewals
 
-## Problem Analysis
-The app feels slow due to several compounding issues: render-blocking font loading, expensive CSS effects (128px blur with continuous animation), excessive per-item framer-motion animations, no query caching (data re-fetches on every navigation), and AnimatePresence blocking page transitions.
+## Approach: Capacitor Local Notifications
 
----
-
-## 1. Remove render-blocking Google Fonts import
-
-Replace the CSS `@import` in `src/index.css` with a `<link rel="preconnect">` + `<link rel="stylesheet">` in `index.html`. This prevents the CSS from blocking the initial render.
-
-**Files:** `index.html`, `src/index.css`
+Since the app already tracks `next_renewal` dates and a user-configurable `reminder_days_before` setting, the most reliable approach is **Capacitor Local Notifications**. These are scheduled directly on the device -- no server infrastructure, no Firebase/APNs setup, and they work offline.
 
 ---
 
-## 2. Remove expensive ambient background blur
+## How It Works
 
-The `AppLayout.tsx` has two 384px divs with `blur-[128px]` and `animate-pulse-glow` running continuously. These are extremely expensive for mobile GPUs. Remove them entirely.
+1. When the app opens, it reads all active subscriptions and the user's `reminder_days_before` preference
+2. It calculates the notification date for each subscription (renewal date minus reminder days)
+3. It schedules a local notification for each upcoming renewal
+4. Notifications re-sync every time the app opens or a subscription is added/edited/deleted
 
-**File:** `src/components/AppLayout.tsx`
-
----
-
-## 3. Simplify glass-card CSS
-
-Remove the `::before` pseudo-element gradient overlay from every `.glass-card`. This creates an extra compositing layer on every single card in the app. Use a simpler single-gradient background instead.
-
-**File:** `src/index.css`
+Example: If Netflix renews on March 15 and reminder is set to 3 days, a notification fires on March 12 saying "Netflix renews in 3 days -- $14.99"
 
 ---
 
-## 4. Add staleTime to React Query hooks
+## What Gets Built
 
-Currently `useSubscriptions`, `useProfile`, and `useCatalog` all have `staleTime: 0` (default), causing re-fetches on every navigation. Set `staleTime: 30000` (30 seconds) so data is reused when switching between pages.
+### 1. Install `@capacitor/local-notifications` package
 
-**Files:** `src/hooks/useSubscriptions.ts`, `src/hooks/useProfile.ts`
+### 2. Create `src/hooks/useNotifications.ts`
+- Request notification permission on first app launch
+- `scheduleRenewalNotifications(subscriptions, reminderDays)` function that:
+  - Cancels all previously scheduled notifications
+  - Loops through active subscriptions
+  - For each, calculates `next_renewal - reminder_days_before`
+  - Skips dates in the past
+  - Schedules a notification with title like "Upcoming Renewal" and body like "Netflix renews in 3 days -- $14.99"
 
----
+### 3. Update `src/App.tsx`
+- Call `useNotifications()` at app level so notifications sync on every app open
 
-## 5. Remove AnimatePresence wait mode
+### 4. Update `src/hooks/useSubscriptions.ts`
+- After add/update/delete mutations succeed, trigger a re-schedule of notifications
 
-Change `AnimatePresence mode="wait"` to just `AnimatePresence` in `App.tsx`. The "wait" mode delays showing the new page until the old one finishes its exit animation, making every navigation feel sluggish.
+### 5. Update `src/pages/SettingsPage.tsx`
+- After saving `reminder_days_before`, trigger a re-schedule so the new preference takes effect immediately
 
-**File:** `src/App.tsx`
-
----
-
-## 6. Reduce per-item staggered animations
-
-Remove individual `delay` props from list items in `Index.tsx`, `Analytics.tsx`, and `AddSubscription.tsx`. Instead, animate the parent container once. Individual item delays of `0.02-0.05s * N items` add up significantly.
-
-**Files:** `src/pages/Index.tsx`, `src/pages/Analytics.tsx`, `src/pages/AddSubscription.tsx`
-
----
-
-## 7. Fix AnimatedNumber ref warning
-
-The console shows "Function components cannot be given refs" for `AnimatedNumber`. While not a perf issue per se, React warnings slow down dev mode. The component already uses an internal ref correctly -- the warning comes from framer-motion trying to pass a ref. No code change needed as this is a dev-only warning, but noted.
+### 6. Add notification permission prompt
+- On first launch, show a clean prompt explaining why notifications are needed before requesting OS permission
+- Store permission state so we don't re-ask
 
 ---
 
-## 8. Remove SettingsPage duplicate Supabase call
+## Notification Content
 
-`SettingsPage` makes its own `supabase.from('profiles').select()` call in a `useEffect`, while `useProfile` already fetches the same data. Remove the duplicate and use the profile from `useProfile` instead.
-
-**File:** `src/pages/SettingsPage.tsx`
-
----
-
-## 9. Simplify PageTransition
-
-Reduce the transition wrapper to just a simple opacity fade (remove the y-axis shift) and shorten duration to 100ms.
-
-**File:** `src/components/PageTransition.tsx`
+Each notification will include:
+- **Title**: "Subscription Renewal"
+- **Body**: "{Name} renews in {N} days -- {currency}{amount}"
+- **Schedule**: Fires at 9:00 AM on the reminder date (not middle of the night)
+- **Unique ID**: Based on subscription ID so updates replace old notifications
 
 ---
 
-## Summary of expected impact
+## Technical Notes
 
-- **Font loading**: Eliminates ~200-500ms render block on first load
-- **Blur removal**: Major GPU savings, especially on mobile/Android
-- **staleTime**: Eliminates redundant network requests on every navigation
-- **AnimatePresence**: Pages appear instantly instead of waiting for exit animation
-- **Stagger removal**: Lists render immediately instead of trickling in
-- **Duplicate query removal**: One fewer Supabase request per settings visit
+- `@capacitor/local-notifications` works on both iOS and Android natively
+- On web (browser preview), notifications gracefully no-op so the app won't break
+- After any code changes, you'll need to run `npx cap sync` to update the native project
+- Android 13+ requires runtime notification permission (handled automatically by the plugin)
+- iOS always requires permission (handled via the plugin's `requestPermissions()`)
 
