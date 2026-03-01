@@ -1,67 +1,71 @@
 
 
-# Push Notifications for Subscription Renewals
+# Add Calendar View and Upcoming Subscriptions Widget
 
-## Approach: Capacitor Local Notifications
-
-Since the app already tracks `next_renewal` dates and a user-configurable `reminder_days_before` setting, the most reliable approach is **Capacitor Local Notifications**. These are scheduled directly on the device -- no server infrastructure, no Firebase/APNs setup, and they work offline.
+Inspired by the reference screenshots, this plan adds two new features: a **Calendar page** showing renewal dates with subscription logos on calendar days, and an **Upcoming Subscriptions widget** on the home page with a horizontally scrollable card strip.
 
 ---
 
-## How It Works
+## 1. Create Calendar Page (`src/pages/CalendarPage.tsx`)
 
-1. When the app opens, it reads all active subscriptions and the user's `reminder_days_before` preference
-2. It calculates the notification date for each subscription (renewal date minus reminder days)
-3. It schedules a local notification for each upcoming renewal
-4. Notifications re-sync every time the app opens or a subscription is added/edited/deleted
+A new page at `/calendar` showing a monthly calendar view where:
+- Each day that has a subscription renewal shows the subscription's logo (or first letter) as a small indicator
+- Tapping a day with renewals shows the subscription details below the calendar
+- Month navigation with left/right arrows
+- Today is highlighted
+- Uses the existing `react-day-picker` library (already installed) with custom day rendering
 
-Example: If Netflix renews on March 15 and reminder is set to 3 days, a notification fires on March 12 saying "Netflix renews in 3 days -- $14.99"
-
----
-
-## What Gets Built
-
-### 1. Install `@capacitor/local-notifications` package
-
-### 2. Create `src/hooks/useNotifications.ts`
-- Request notification permission on first app launch
-- `scheduleRenewalNotifications(subscriptions, reminderDays)` function that:
-  - Cancels all previously scheduled notifications
-  - Loops through active subscriptions
-  - For each, calculates `next_renewal - reminder_days_before`
-  - Skips dates in the past
-  - Schedules a notification with title like "Upcoming Renewal" and body like "Netflix renews in 3 days -- $14.99"
-
-### 3. Update `src/App.tsx`
-- Call `useNotifications()` at app level so notifications sync on every app open
-
-### 4. Update `src/hooks/useSubscriptions.ts`
-- After add/update/delete mutations succeed, trigger a re-schedule of notifications
-
-### 5. Update `src/pages/SettingsPage.tsx`
-- After saving `reminder_days_before`, trigger a re-schedule so the new preference takes effect immediately
-
-### 6. Add notification permission prompt
-- On first launch, show a clean prompt explaining why notifications are needed before requesting OS permission
-- Store permission state so we don't re-ask
+**Key behavior:**
+- Build a map of `day -> subscription[]` from active subscriptions' `next_renewal` dates
+- Custom `DayContent` component renders the logo inside the calendar cell
+- Below the calendar, a "Selected day" section shows the subscriptions renewing on the tapped date with name, amount, and billing cycle
+- Clean, minimal design matching the app's glass-card aesthetic
 
 ---
 
-## Notification Content
+## 2. Add Upcoming Subscriptions Widget to Home Page (`src/pages/Index.tsx`)
 
-Each notification will include:
-- **Title**: "Subscription Renewal"
-- **Body**: "{Name} renews in {N} days -- {currency}{amount}"
-- **Schedule**: Fires at 9:00 AM on the reminder date (not middle of the night)
-- **Unique ID**: Based on subscription ID so updates replace old notifications
+Replace or enhance the current "Upcoming renewals" section with a horizontally scrollable card strip (like the reference image's widget):
+- Each card shows: logo, subscription name, "Renew in Xd" text in orange/warning color, and price/cycle
+- Horizontal scroll with `overflow-x-auto` and snap scrolling
+- Limited to subscriptions renewing within the next 14 days
+- Cards link to subscription detail page
 
 ---
 
-## Technical Notes
+## 3. Add Calendar to Bottom Navigation (`src/components/AppLayout.tsx`)
 
-- `@capacitor/local-notifications` works on both iOS and Android natively
-- On web (browser preview), notifications gracefully no-op so the app won't break
-- After any code changes, you'll need to run `npx cap sync` to update the native project
-- Android 13+ requires runtime notification permission (handled automatically by the plugin)
-- iOS always requires permission (handled via the plugin's `requestPermissions()`)
+Replace one of the existing nav items or add Calendar as a 5th item:
+- Replace the "Add" nav item (since there's already a FAB for adding) with a Calendar icon
+- Route: `/calendar`
+- Icon: `CalendarDays` from lucide-react
+
+---
+
+## 4. Register Route in App.tsx
+
+Add the `/calendar` route wrapped in `ProtectedRoute > AppLayout > PageTransition`.
+
+---
+
+## Technical Details
+
+**CalendarPage.tsx structure:**
+- Uses `react-day-picker` `DayPicker` component with custom `components.DayContent`
+- `useMemo` to build a `Map<string, Subscription[]>` keyed by `YYYY-MM-DD`
+- State: `selectedDate` for showing details below calendar
+- Custom day rendering: if subscriptions exist for that day, show a small logo or colored dot; otherwise normal number
+
+**Home widget structure:**
+- Horizontal flex container with `overflow-x-auto`, `snap-x`, `snap-mandatory`
+- Each card: `snap-start`, `min-w-[140px]`, glass-card styling
+- Shows logo, name, renewal countdown in warning color, price
+
+**Files to create:**
+- `src/pages/CalendarPage.tsx`
+
+**Files to modify:**
+- `src/pages/Index.tsx` -- add horizontal upcoming widget
+- `src/components/AppLayout.tsx` -- swap "Add" nav for "Calendar"
+- `src/App.tsx` -- add `/calendar` route
 
