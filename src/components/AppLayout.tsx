@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, CalendarDays, BarChart3, Settings, LogOut } from 'lucide-react';
+import { Home, CalendarDays, PlusCircle, BarChart3, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 const navItems = [
   { to: '/', icon: Home, label: 'Home' },
   { to: '/calendar', icon: CalendarDays, label: 'Calendar' },
+  { to: '/add', icon: PlusCircle, label: 'Add', center: true },
   { to: '/analytics', icon: BarChart3, label: 'Insights' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ];
@@ -40,8 +41,22 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
       {/* Bottom nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/30 bg-background/60 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-lg items-center justify-around py-2">
-          {navItems.map(({ to, icon: Icon, label }) => {
+          {navItems.map(({ to, icon: Icon, label, center }) => {
             const isActive = location.pathname === to;
+            if (center) {
+              return (
+                <NavLink
+                  key={to}
+                  to={to}
+                  className="relative flex flex-col items-center gap-0.5 px-4 py-1.5 text-xs -mt-5"
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary shadow-lg shadow-primary/30">
+                    <Icon className="h-6 w-6 text-primary-foreground" />
+                  </div>
+                  <span className="text-primary font-medium mt-0.5">{label}</span>
+                </NavLink>
+              );
+            }
             return (
               <NavLink
                 key={to}
