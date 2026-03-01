@@ -18,6 +18,7 @@ import Index from "./pages/Index";
 import AddSubscription from "./pages/AddSubscription";
 import SubscriptionDetail from "./pages/SubscriptionDetail";
 import Analytics from "./pages/Analytics";
+import CalendarPage from "./pages/CalendarPage";
 import SettingsPage from "./pages/SettingsPage";
 import Plans from "./pages/Plans";
 import NotFound from "./pages/NotFound";
@@ -42,6 +43,7 @@ const AppRoutes = () => {
         <Route path="/add" element={<ProtectedRoute><AppLayout><PageTransition><AddSubscription /></PageTransition></AppLayout></ProtectedRoute>} />
         <Route path="/subscription/:id" element={<ProtectedRoute><AppLayout><PageTransition><SubscriptionDetail /></PageTransition></AppLayout></ProtectedRoute>} />
         <Route path="/analytics" element={<ProtectedRoute><AppLayout><PageTransition><Analytics /></PageTransition></AppLayout></ProtectedRoute>} />
+        <Route path="/calendar" element={<ProtectedRoute><AppLayout><PageTransition><CalendarPage /></PageTransition></AppLayout></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><AppLayout><PageTransition><SettingsPage /></PageTransition></AppLayout></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>

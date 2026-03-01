@@ -1,12 +1,12 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, PlusCircle, BarChart3, Settings, LogOut } from 'lucide-react';
+import { Home, CalendarDays, BarChart3, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Home' },
-  { to: '/add', icon: PlusCircle, label: 'Add' },
+  { to: '/calendar', icon: CalendarDays, label: 'Calendar' },
   { to: '/analytics', icon: BarChart3, label: 'Insights' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ];
