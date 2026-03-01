@@ -17,6 +17,9 @@ export interface Subscription {
   cancel_url: string | null;
   cancellation_steps: string[] | null;
   notes: string | null;
+  discount_percentage: number | null;
+  discount_end_date: string | null;
+  trial_end_date: string | null;
   created_at: string;
   updated_at: string;
 }
