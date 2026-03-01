@@ -6,8 +6,9 @@ import { useSubscriptions, useDeleteSubscription, useUpdateSubscription } from '
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, ExternalLink, Trash2, XCircle, Loader2, DollarSign, CalendarDays, Tag, BarChart3 } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Trash2, XCircle, DollarSign, CalendarDays, Tag, BarChart3 } from 'lucide-react';
 import { playDeleteFeedback } from '@/lib/celebrations';
+import { DetailSkeleton } from '@/components/SkeletonLoaders';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -29,7 +30,7 @@ const SubscriptionDetail = () => {
     return monthly * months;
   }, [sub]);
 
-  if (isLoading) return <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  if (isLoading) return <DetailSkeleton />;
   if (!sub) return <div className="text-center py-20 text-muted-foreground">Subscription not found</div>;
 
   const handleDelete = async () => {
