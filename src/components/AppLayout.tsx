@@ -48,12 +48,12 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
                 <NavLink
                   key={to}
                   to={to}
-                  className="relative flex flex-col items-center gap-0.5 px-4 py-1.5 text-xs -mt-5"
+                  className="relative flex flex-col items-center gap-0.5 px-4 py-1.5 text-xs"
                 >
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary shadow-lg shadow-primary/30">
-                    <Icon className="h-6 w-6 text-primary-foreground" />
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 border border-primary/30">
+                    <Icon className="h-5 w-5 text-primary" />
                   </div>
-                  <span className="text-primary font-medium mt-0.5">{label}</span>
+                  <span className="text-primary font-medium">{label}</span>
                 </NavLink>
               );
             }
