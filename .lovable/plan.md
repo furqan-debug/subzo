@@ -1,71 +1,64 @@
 
+# Improve App Based on User Feedback
 
-# Add Calendar View and Upcoming Subscriptions Widget
-
-Inspired by the reference screenshots, this plan adds two new features: a **Calendar page** showing renewal dates with subscription logos on calendar days, and an **Upcoming Subscriptions widget** on the home page with a horizontally scrollable card strip.
-
----
-
-## 1. Create Calendar Page (`src/pages/CalendarPage.tsx`)
-
-A new page at `/calendar` showing a monthly calendar view where:
-- Each day that has a subscription renewal shows the subscription's logo (or first letter) as a small indicator
-- Tapping a day with renewals shows the subscription details below the calendar
-- Month navigation with left/right arrows
-- Today is highlighted
-- Uses the existing `react-day-picker` library (already installed) with custom day rendering
-
-**Key behavior:**
-- Build a map of `day -> subscription[]` from active subscriptions' `next_renewal` dates
-- Custom `DayContent` component renders the logo inside the calendar cell
-- Below the calendar, a "Selected day" section shows the subscriptions renewing on the tapped date with name, amount, and billing cycle
-- Clean, minimal design matching the app's glass-card aesthetic
+Two key improvements based on competitor app reviews:
 
 ---
 
-## 2. Add Upcoming Subscriptions Widget to Home Page (`src/pages/Index.tsx`)
+## 1. Let Users Try Before Subscribing (Free Trial)
 
-Replace or enhance the current "Upcoming renewals" section with a horizontally scrollable card strip (like the reference image's widget):
-- Each card shows: logo, subscription name, "Renew in Xd" text in orange/warning color, and price/cycle
-- Horizontal scroll with `overflow-x-auto` and snap scrolling
-- Limited to subscriptions renewing within the next 14 days
-- Cards link to subscription detail page
+**Problem**: Currently, after sign-up, users are immediately forced to the `/plans` page and cannot access ANY features until they pick a paid plan. This creates friction and bad reviews.
 
----
+**Solution**: Allow users to explore the app freely after sign-up, with a soft paywall approach.
 
-## 3. Add Calendar to Bottom Navigation (`src/components/AppLayout.tsx`)
-
-Replace one of the existing nav items or add Calendar as a 5th item:
-- Replace the "Add" nav item (since there's already a FAB for adding) with a Calendar icon
-- Route: `/calendar`
-- Icon: `CalendarDays` from lucide-react
+### Changes:
+- **Remove the hard paywall gate** in `ProtectedRoute.tsx` -- stop redirecting to `/plans` when no plan is selected. Users can use the app immediately after signing up.
+- **Add a subtle upgrade banner** on the home page (`Index.tsx`) -- a dismissible card encouraging users to subscribe, shown only when they have no plan selected. Non-intrusive, appears at the top of the subscription list.
+- **Keep the Plans page accessible** from Settings and the banner, but it's no longer a forced gate.
 
 ---
 
-## 4. Register Route in App.tsx
+## 2. Add Discount & Trial Period Fields to Subscriptions
 
-Add the `/calendar` route wrapped in `ProtectedRoute > AppLayout > PageTransition`.
+**Problem**: Users can't track discounted prices or free trial periods for their subscriptions. These are common real-world scenarios (e.g., "50% off for 3 months", "14-day free trial").
+
+**Solution**: Add optional discount and trial tracking fields.
+
+### Database Changes (migration):
+- Add columns to `subscriptions` table:
+  - `discount_percentage` (numeric, nullable) -- e.g., 50 for 50% off
+  - `discount_end_date` (date, nullable) -- when the discount expires
+  - `trial_end_date` (date, nullable) -- when the free trial ends
+
+### UI Changes:
+
+**Add Subscription page** (`AddSubscription.tsx`):
+- Add an optional "Trial / Discount" collapsible section in the custom subscription form with:
+  - Toggle for "Free trial" with a date picker for trial end date
+  - Toggle for "Discounted price" with a percentage input and end date
+
+**Subscription Detail page** (`SubscriptionDetail.tsx`):
+- Show trial status badge (e.g., "Trial ends in 5 days") if `trial_end_date` is set and in the future
+- Show discount info (e.g., "50% off until Mar 15") if discount fields are set
+- These appear as additional detail cards in the existing grid
+
+**Home page** (`Index.tsx` / `SwipeableSubscriptionCard.tsx`):
+- Show a small "Trial" or "Discounted" badge on subscription cards when applicable
+
+### Types update (`useSubscriptions.ts`):
+- Add `discount_percentage`, `discount_end_date`, and `trial_end_date` to the `Subscription` interface
 
 ---
 
-## Technical Details
+## Technical Summary
 
-**CalendarPage.tsx structure:**
-- Uses `react-day-picker` `DayPicker` component with custom `components.DayContent`
-- `useMemo` to build a `Map<string, Subscription[]>` keyed by `YYYY-MM-DD`
-- State: `selectedDate` for showing details below calendar
-- Custom day rendering: if subscriptions exist for that day, show a small logo or colored dot; otherwise normal number
-
-**Home widget structure:**
-- Horizontal flex container with `overflow-x-auto`, `snap-x`, `snap-mandatory`
-- Each card: `snap-start`, `min-w-[140px]`, glass-card styling
-- Shows logo, name, renewal countdown in warning color, price
-
-**Files to create:**
-- `src/pages/CalendarPage.tsx`
-
-**Files to modify:**
-- `src/pages/Index.tsx` -- add horizontal upcoming widget
-- `src/components/AppLayout.tsx` -- swap "Add" nav for "Calendar"
-- `src/App.tsx` -- add `/calendar` route
-
+| File | Change |
+|---|---|
+| `supabase/migrations/` | New migration adding 3 columns to `subscriptions` |
+| `src/integrations/supabase/types.ts` | Will auto-update with new columns |
+| `src/hooks/useSubscriptions.ts` | Update `Subscription` interface |
+| `src/components/ProtectedRoute.tsx` | Remove forced redirect to `/plans` |
+| `src/pages/Index.tsx` | Add soft upgrade banner for free users |
+| `src/pages/AddSubscription.tsx` | Add trial/discount fields in custom form |
+| `src/pages/SubscriptionDetail.tsx` | Show trial/discount info cards |
+| `src/components/SwipeableSubscriptionCard.tsx` | Add trial/discount badges |
