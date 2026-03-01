@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useSubscriptions } from '@/hooks/useSubscriptions';
-import { DollarSign, TrendingUp, Star, Sparkles, PiggyBank } from 'lucide-react';
+import { DollarSign, TrendingUp, Star, BarChart3, BadgeCheck } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { AnalyticsSkeleton } from '@/components/SkeletonLoaders';
 import AnimatedNumber from '@/components/AnimatedNumber';
@@ -63,8 +63,8 @@ const Analytics = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Sparkles className="h-5 w-5 text-primary" />
+       <div className="flex items-center gap-2">
+        <BarChart3 className="h-5 w-5 text-primary" />
         <h1 className="font-display text-xl font-semibold">Insights</h1>
       </div>
 
@@ -101,10 +101,10 @@ const Analytics = () => {
       {/* Money saved */}
       {moneySaved > 0 && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
-          <div className="glass-card glow-accent border-accent/20 p-4">
+          <div className="glass-card border-success/20 p-4">
             <div className="flex items-center gap-3 relative z-10">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-success/10 border border-success/20">
-                <PiggyBank className="h-5 w-5 text-success" />
+                <BadgeCheck className="h-5 w-5 text-success" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Money saved</p>

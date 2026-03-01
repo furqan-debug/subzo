@@ -5,7 +5,7 @@ import { format, differenceInDays, parseISO } from 'date-fns';
 import { useSubscriptions, useDeleteSubscription } from '@/hooks/useSubscriptions';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, TrendingUp, Calendar, Sparkles, ArrowUpRight, Zap, ChevronsDown, Clock } from 'lucide-react';
+import { Plus, TrendingUp, Calendar, ArrowUpRight, ArrowDown, ArrowUp, Clock } from 'lucide-react';
 import { IndexSkeleton } from '@/components/SkeletonLoaders';
 import AnimatedNumber from '@/components/AnimatedNumber';
 import SwipeableSubscriptionCard from '@/components/SwipeableSubscriptionCard';
@@ -70,11 +70,10 @@ const Index = () => {
     <div className="space-y-6">
       {/* Hero spending card */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <div className="glass-card glow-primary p-6">
+        <div className="glass-card p-6">
           <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <p className="text-sm text-muted-foreground font-medium tracking-wide uppercase">Monthly spending</p>
+            <div className="mb-3">
+              <p className="text-xs text-muted-foreground font-medium tracking-wide uppercase">Monthly spending</p>
             </div>
             <p className="font-display text-5xl font-bold tracking-tight text-gradient">
               <AnimatedNumber value={monthlyTotal} prefix="$" />
@@ -101,14 +100,14 @@ const Index = () => {
           <div className="grid grid-cols-3 gap-2">
             <div className="glass-card p-3 relative z-10">
               <div className="relative z-10">
-                <ChevronsDown className="h-3.5 w-3.5 text-success mb-1" />
+                <ArrowDown className="h-3.5 w-3.5 text-success mb-1" />
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Cheapest</p>
                 <p className="text-xs font-semibold truncate mt-0.5">{quickStats.cheapest.name}</p>
               </div>
             </div>
             <div className="glass-card p-3">
               <div className="relative z-10">
-                <Zap className="h-3.5 w-3.5 text-warning mb-1" />
+                <ArrowUp className="h-3.5 w-3.5 text-warning mb-1" />
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Priciest</p>
                 <p className="text-xs font-semibold truncate mt-0.5">{quickStats.priciest.name}</p>
               </div>
@@ -147,7 +146,7 @@ const Index = () => {
                 >
                   <Link to={`/subscription/${sub.id}`}>
                     <motion.div whileTap={{ scale: 0.98 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
-                      <Card className="group glass-card hover:glow-primary transition-all duration-300 hover:border-primary/30">
+                      <Card className="group glass-card transition-all duration-300 hover:border-primary/30">
                         <CardContent className="flex items-center gap-3 p-3 relative z-10">
                           <div className="icon-premium h-10 w-10 shrink-0">
                             {sub.logo_url ? (
@@ -182,11 +181,11 @@ const Index = () => {
         {activeSubscriptions.length === 0 ? (
           <div className="glass-card p-8">
             <div className="flex flex-col items-center justify-center text-center relative z-10">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 mb-4">
-                <PlusCircle className="h-8 w-8 text-primary" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20 mb-4">
+                <Plus className="h-7 w-7 text-primary" />
               </div>
               <p className="text-muted-foreground mb-4">No subscriptions yet</p>
-              <Button asChild className="glow-primary">
+              <Button asChild>
                 <Link to="/add">Add your first subscription</Link>
               </Button>
             </div>
@@ -237,8 +236,8 @@ const Index = () => {
       {activeSubscriptions.length > 0 && (
         <Link to="/add" className="fixed bottom-20 right-4 z-30 sm:right-[calc(50%-224px+16px)]">
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button size="lg" className="h-14 w-14 rounded-full glow-primary bg-gradient-to-br from-primary to-primary-glow hover:from-primary-glow hover:to-primary">
-              <PlusCircle className="h-6 w-6" />
+            <Button size="lg" className="h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90">
+              <Plus className="h-6 w-6" />
             </Button>
           </motion.div>
         </Link>
