@@ -153,11 +153,8 @@ const AddSubscription = () => {
               {catalog?.map((item, i) => {
                 const logoSrc = getLogoSrc(item);
                 return (
-                  <motion.div
+                  <div
                     key={item.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.02 }}
                   >
                     <Card
                       className="group glass-card cursor-pointer hover:border-primary/30 transition-all duration-300"
@@ -183,7 +180,7 @@ const AddSubscription = () => {
                         </div>
                       </CardContent>
                     </Card>
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>

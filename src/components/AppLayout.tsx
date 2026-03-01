@@ -17,12 +17,6 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* Ambient background glow */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-32 -left-32 h-96 w-96 rounded-full bg-primary/5 blur-[128px] animate-pulse-glow" />
-        <div className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-accent/5 blur-[128px] animate-pulse-glow" style={{ animationDelay: '1s' }} />
-      </div>
-
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border/30 bg-background/60 backdrop-blur-2xl">
         <div className="mx-auto flex h-14 max-w-lg items-center justify-between px-4">
