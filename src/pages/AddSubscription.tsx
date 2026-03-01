@@ -9,7 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
-import { Search, ArrowLeft, Loader2, PenLine, Sparkles } from 'lucide-react';
+import { Search, ArrowLeft, Loader2, PenLine, Sparkles, ChevronDown } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { playAddCelebration } from '@/lib/celebrations';
 
 const categories = ['Entertainment', 'Music', 'Productivity', 'Cloud', 'Fitness', 'Health', 'Security', 'Education', 'News', 'Gaming', 'Shopping', 'Professional', 'Other'];
@@ -26,6 +28,11 @@ const AddSubscription = () => {
   const [cycle, setCycle] = useState('monthly');
   const [category, setCategory] = useState('Other');
   const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [hasTrial, setHasTrial] = useState(false);
+  const [trialEndDate, setTrialEndDate] = useState('');
+  const [hasDiscount, setHasDiscount] = useState(false);
+  const [discountPercentage, setDiscountPercentage] = useState('');
+  const [discountEndDate, setDiscountEndDate] = useState('');
 
   const [logoFallbackStep, setLogoFallbackStep] = useState<Record<string, number>>({});
 
@@ -71,6 +78,9 @@ const AddSubscription = () => {
         cancel_url: item.cancel_url,
         cancellation_steps: item.cancellation_steps,
         notes: null,
+        trial_end_date: null,
+        discount_percentage: null,
+        discount_end_date: null,
       });
       playAddCelebration();
       toast({ title: `${item.name} added! 🎉` });
@@ -95,6 +105,9 @@ const AddSubscription = () => {
         cancel_url: null,
         cancellation_steps: null,
         notes: null,
+        trial_end_date: hasTrial && trialEndDate ? trialEndDate : null,
+        discount_percentage: hasDiscount && discountPercentage ? parseFloat(discountPercentage) : null,
+        discount_end_date: hasDiscount && discountEndDate ? discountEndDate : null,
       });
       playAddCelebration();
       toast({ title: `${name} added! 🎉` });
@@ -235,6 +248,51 @@ const AddSubscription = () => {
               <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-secondary/30 border-border/50 focus:border-primary/50" />
             </div>
           </div>
+
+          {/* Trial / Discount section */}
+          <Collapsible>
+            <CollapsibleTrigger className="flex items-center gap-2 w-full text-xs font-medium text-muted-foreground hover:text-foreground transition-colors py-2">
+              <ChevronDown className="h-3.5 w-3.5" />
+              Trial & Discount (optional)
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="glass-card p-4 space-y-4 relative z-10">
+                {/* Free trial toggle */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs text-muted-foreground">Free trial</Label>
+                    <Switch checked={hasTrial} onCheckedChange={setHasTrial} />
+                  </div>
+                  {hasTrial && (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Trial ends on</Label>
+                      <Input type="date" value={trialEndDate} onChange={(e) => setTrialEndDate(e.target.value)} className="bg-secondary/30 border-border/50 focus:border-primary/50" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Discount toggle */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs text-muted-foreground">Discounted price</Label>
+                    <Switch checked={hasDiscount} onCheckedChange={setHasDiscount} />
+                  </div>
+                  {hasDiscount && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground">Discount %</Label>
+                        <Input type="number" min="1" max="100" value={discountPercentage} onChange={(e) => setDiscountPercentage(e.target.value)} placeholder="50" className="bg-secondary/30 border-border/50 focus:border-primary/50" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground">Ends on</Label>
+                        <Input type="date" value={discountEndDate} onChange={(e) => setDiscountEndDate(e.target.value)} className="bg-secondary/30 border-border/50 focus:border-primary/50" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
 
           <Button type="submit" className="w-full glow-primary bg-gradient-to-r from-primary to-primary-glow hover:from-primary-glow hover:to-primary transition-all" disabled={addMutation.isPending}>
             {addMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}

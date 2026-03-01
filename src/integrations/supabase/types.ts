@@ -136,12 +136,15 @@ export type Database = {
           catalog_id: string | null
           category: string
           created_at: string
+          discount_end_date: string | null
+          discount_percentage: number | null
           id: string
           logo_url: string | null
           name: string
           next_renewal: string
           notes: string | null
           status: string
+          trial_end_date: string | null
           updated_at: string
           user_id: string
         }
@@ -153,12 +156,15 @@ export type Database = {
           catalog_id?: string | null
           category?: string
           created_at?: string
+          discount_end_date?: string | null
+          discount_percentage?: number | null
           id?: string
           logo_url?: string | null
           name: string
           next_renewal: string
           notes?: string | null
           status?: string
+          trial_end_date?: string | null
           updated_at?: string
           user_id: string
         }
@@ -170,12 +176,15 @@ export type Database = {
           catalog_id?: string | null
           category?: string
           created_at?: string
+          discount_end_date?: string | null
+          discount_percentage?: number | null
           id?: string
           logo_url?: string | null
           name?: string
           next_renewal?: string
           notes?: string | null
           status?: string
+          trial_end_date?: string | null
           updated_at?: string
           user_id?: string
         }

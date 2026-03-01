@@ -38,7 +38,7 @@ const AppRoutes = () => {
       <Routes location={location} key={location.pathname}>
         <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
         <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
-        <Route path="/plans" element={<ProtectedRoute requirePlan={false}><PageTransition><Plans /></PageTransition></ProtectedRoute>} />
+        <Route path="/plans" element={<ProtectedRoute><PageTransition><Plans /></PageTransition></ProtectedRoute>} />
         <Route path="/" element={<ProtectedRoute><AppLayout><PageTransition><Index /></PageTransition></AppLayout></ProtectedRoute>} />
         <Route path="/add" element={<ProtectedRoute><AppLayout><PageTransition><AddSubscription /></PageTransition></AppLayout></ProtectedRoute>} />
         <Route path="/subscription/:id" element={<ProtectedRoute><AppLayout><PageTransition><SubscriptionDetail /></PageTransition></AppLayout></ProtectedRoute>} />

@@ -6,7 +6,8 @@ import { useSubscriptions, useDeleteSubscription, useUpdateSubscription } from '
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, ExternalLink, Trash2, XCircle, DollarSign, CalendarDays, Tag, BarChart3 } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Trash2, XCircle, DollarSign, CalendarDays, Tag, BarChart3, Clock, Percent } from 'lucide-react';
+import { differenceInDays } from 'date-fns';
 import { playDeleteFeedback } from '@/lib/celebrations';
 import { DetailSkeleton } from '@/components/SkeletonLoaders';
 import {
@@ -87,6 +88,38 @@ const SubscriptionDetail = () => {
           </div>
         </div>
       </motion.div>
+
+      {/* Trial / Discount info cards */}
+      {sub.trial_end_date && new Date(sub.trial_end_date) > new Date() && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
+          <div className="glass-card border-accent/20 p-4">
+            <div className="relative z-10 flex items-center gap-3">
+              <Clock className="h-4 w-4 text-accent" />
+              <div>
+                <p className="text-xs text-muted-foreground">Free trial</p>
+                <p className="text-sm font-semibold text-accent">
+                  Ends in {differenceInDays(new Date(sub.trial_end_date), new Date())} days
+                </p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+      {sub.discount_percentage && sub.discount_end_date && new Date(sub.discount_end_date) > new Date() && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
+          <div className="glass-card border-success/20 p-4">
+            <div className="relative z-10 flex items-center gap-3">
+              <Percent className="h-4 w-4 text-success" />
+              <div>
+                <p className="text-xs text-muted-foreground">Discount active</p>
+                <p className="text-sm font-semibold text-success">
+                  {sub.discount_percentage}% off until {format(parseISO(sub.discount_end_date), 'MMM d')}
+                </p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Details grid */}
       <div className="grid grid-cols-2 gap-3">

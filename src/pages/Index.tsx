@@ -1,12 +1,13 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { format, differenceInDays, parseISO } from 'date-fns';
 import { useSubscriptions, useDeleteSubscription } from '@/hooks/useSubscriptions';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, TrendingUp, Calendar, ArrowUpRight, ArrowDown, ArrowUp, Clock } from 'lucide-react';
+import { Plus, TrendingUp, Calendar, ArrowUpRight, ArrowDown, ArrowUp, Clock, Crown, X } from 'lucide-react';
 import { IndexSkeleton } from '@/components/SkeletonLoaders';
+import { useProfile } from '@/hooks/useProfile';
 import AnimatedNumber from '@/components/AnimatedNumber';
 import SwipeableSubscriptionCard from '@/components/SwipeableSubscriptionCard';
 import { playDeleteFeedback } from '@/lib/celebrations';
@@ -15,6 +16,8 @@ import { toast } from '@/hooks/use-toast';
 const Index = () => {
   const { data: subscriptions, isLoading } = useSubscriptions();
   const deleteMutation = useDeleteSubscription();
+  const { subscriptionPlan } = useProfile();
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   const activeSubscriptions = useMemo(
     () => subscriptions?.filter((s) => s.status === 'active') ?? [],
@@ -68,6 +71,29 @@ const Index = () => {
 
   return (
     <div className="space-y-6">
+      {/* Upgrade banner for free users */}
+      {!subscriptionPlan && !bannerDismissed && (
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="glass-card border-primary/20 p-4">
+            <div className="relative z-10 flex items-start gap-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <Crown className="h-4 w-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">Unlock full features</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Subscribe to get reminders, analytics & more.</p>
+                <Button asChild size="sm" className="mt-2 h-7 text-xs glow-primary bg-gradient-to-r from-primary to-primary-glow">
+                  <Link to="/plans">View plans</Link>
+                </Button>
+              </div>
+              <button onClick={() => setBannerDismissed(true)} className="text-muted-foreground hover:text-foreground transition-colors">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Hero spending card */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <div className="glass-card p-6">
@@ -198,7 +224,15 @@ const Index = () => {
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{sub.name}</p>
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{sub.name}</p>
+                              {sub.trial_end_date && new Date(sub.trial_end_date) > new Date() && (
+                                <span className="shrink-0 rounded-full bg-accent/10 border border-accent/20 px-1.5 py-0.5 text-[9px] font-semibold text-accent uppercase">Trial</span>
+                              )}
+                              {sub.discount_percentage && sub.discount_end_date && new Date(sub.discount_end_date) > new Date() && (
+                                <span className="shrink-0 rounded-full bg-success/10 border border-success/20 px-1.5 py-0.5 text-[9px] font-semibold text-success">{sub.discount_percentage}% off</span>
+                              )}
+                            </div>
                             <p className="text-xs text-muted-foreground">
                               Next: {format(parseISO(sub.next_renewal), 'MMM d')}
                             </p>
