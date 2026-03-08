@@ -114,16 +114,54 @@ const Index = () => {
 
       {/* Hero spending card */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <div className="hero-spending-card relative overflow-hidden rounded-2xl border border-primary/20 p-6">
-          {/* Ambient glow layers */}
-          <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-primary/15 blur-3xl" />
-          <div className="absolute -bottom-16 -left-16 h-36 w-36 rounded-full bg-accent/10 blur-3xl" />
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+        <div className={`relative overflow-hidden rounded-2xl p-6 ${
+          isElite ? 'hero-card-elite border border-[hsl(45,80%,55%)]/20' :
+          isPro ? 'hero-card-pro border border-primary/30' :
+          'hero-spending-card border border-primary/20'
+        }`}>
+          {/* Ambient glow layers — intensity scales with tier */}
+          <div className={`absolute -top-20 -right-20 h-40 w-40 rounded-full blur-3xl ${
+            isElite ? 'bg-primary/25' : isPro ? 'bg-primary/20' : 'bg-primary/15'
+          }`} />
+          <div className={`absolute -bottom-16 -left-16 h-36 w-36 rounded-full blur-3xl ${
+            isElite ? 'bg-accent/20' : isPro ? 'bg-accent/15' : 'bg-accent/10'
+          }`} />
+          {(isPro || isElite) && (
+            <div className="absolute top-1/2 -right-10 h-32 w-32 rounded-full bg-primary-glow/10 blur-3xl" />
+          )}
+          {isElite && (
+            <div className="absolute top-10 left-1/3 h-20 w-20 rounded-full blur-2xl" style={{ background: 'hsl(45 80% 55% / 0.06)' }} />
+          )}
+          {!isElite && (
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+          )}
 
           <div className="relative z-10">
-            <div className="mb-4">
-              <p className="text-[10px] text-muted-foreground font-medium tracking-[0.2em] uppercase">Monthly spending</p>
+            {/* Personalized greeting with tier badge */}
+            <div className="mb-4 flex items-center gap-2">
+              {firstName ? (
+                <p className="text-sm text-muted-foreground/80 font-medium">
+                  Hey, {firstName}
+                </p>
+              ) : (
+                <p className="text-[10px] text-muted-foreground font-medium tracking-[0.2em] uppercase">Monthly spending</p>
+              )}
+              {isElite && (
+                <span className="badge-elite inline-flex items-center gap-1 rounded-full border border-[hsl(45,80%,55%)]/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider" style={{ color: 'hsl(45 80% 65%)' }}>
+                  <Star className="h-3 w-3 fill-current" />
+                  Elite
+                </span>
+              )}
+              {isPro && (
+                <span className="badge-pro inline-flex items-center gap-1 rounded-full border border-primary/20 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
+                  <Crown className="h-3 w-3" />
+                  Pro
+                </span>
+              )}
             </div>
+            {firstName && (
+              <p className="text-[10px] text-muted-foreground/60 font-medium tracking-[0.2em] uppercase mb-1">Monthly spending</p>
+            )}
             <p className="font-display text-5xl font-bold tracking-tight text-gradient">
               <AnimatedNumber value={monthlyTotal} prefix="$" />
             </p>
@@ -131,13 +169,20 @@ const Index = () => {
               {activeSubscriptions.length} active subscription{activeSubscriptions.length !== 1 ? 's' : ''}
             </p>
             <div className="mt-5 flex items-center gap-3">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/8 border border-primary/15 px-3 py-1.5 text-xs font-medium text-primary backdrop-blur-sm">
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium backdrop-blur-sm ${
+                isElite ? 'border border-[hsl(45,80%,55%)]/15 bg-[hsl(45,80%,55%)]/8' : 'bg-primary/8 border border-primary/15 text-primary'
+              }`} style={isElite ? { color: 'hsl(45 80% 65%)' } : undefined}>
                 <TrendingUp className="h-3 w-3" />
                 ${(monthlyTotal * 12).toFixed(0)}/yr
               </span>
               <Link to="/analytics" className="inline-flex items-center gap-1 text-xs text-accent/80 hover:text-accent transition-colors">
                 View insights <ArrowUpRight className="h-3 w-3" />
               </Link>
+              {isFree && (
+                <Link to="/plans" className="ml-auto inline-flex items-center gap-1 text-[10px] text-primary/60 hover:text-primary transition-colors font-medium">
+                  <Crown className="h-3 w-3" /> Upgrade
+                </Link>
+              )}
             </div>
           </div>
         </div>
