@@ -33,10 +33,14 @@ export const useProfile = () => {
     await refetch();
   };
 
+  const rawPlan = (profile as any)?.subscription_plan as string | null;
+  const validPlans = ['monthly', 'annual'];
+  const subscriptionPlan = rawPlan && validPlans.includes(rawPlan) ? rawPlan : null;
+
   return {
     profile,
     isLoading,
-    subscriptionPlan: (profile as any)?.subscription_plan as string | null,
+    subscriptionPlan,
     selectPlan,
     refetch,
   };
