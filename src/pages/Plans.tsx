@@ -36,7 +36,7 @@ const plans = [
     features: [
       { text: 'Everything in Monthly', icon: Check },
       { text: 'Export data as CSV', icon: Download },
-      { text: 'Priority support', icon: Shield },
+      { text: 'Priority Support', icon: Shield },
     ],
   },
   {
@@ -62,7 +62,7 @@ const comparisonFeatures = [
   { name: 'Calendar view', free: false, monthly: true, sixMonth: true, annual: true },
   { name: 'Export CSV', free: false, monthly: false, sixMonth: true, annual: true },
   { name: 'Custom categories', free: false, monthly: false, sixMonth: false, annual: true },
-  { name: 'Priority support', free: false, monthly: false, sixMonth: true, annual: true },
+  { name: '⭐ Priority Support', free: false, monthly: false, sixMonth: true, annual: true },
   { name: 'Early access', free: false, monthly: false, sixMonth: false, annual: true },
 ];
 
