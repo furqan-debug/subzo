@@ -1,0 +1,36 @@
+INSERT INTO subscription_catalog (name, category, default_price, billing_cycle, logo_url, website_url, cancel_url) 
+SELECT v.name, v.category, v.default_price, v.billing_cycle, v.logo_url, v.website_url, v.cancel_url
+FROM (VALUES
+('Claude Pro', 'Productivity', 20.00, 'monthly', 'https://cdn.simpleicons.org/anthropic', 'https://anthropic.com', 'https://console.anthropic.com/settings/billing'),
+('Gemini Advanced', 'Productivity', 19.99, 'monthly', 'https://cdn.simpleicons.org/googlegemini', 'https://gemini.google.com', 'https://one.google.com/about/plans'),
+('Copilot Pro', 'Productivity', 20.00, 'monthly', 'https://cdn.simpleicons.org/githubcopilot', 'https://microsoft.com/copilot', 'https://account.microsoft.com/services'),
+('Perplexity Pro', 'Productivity', 20.00, 'monthly', 'https://cdn.simpleicons.org/perplexity', 'https://perplexity.ai', 'https://perplexity.ai/settings'),
+('Midjourney', 'Productivity', 10.00, 'monthly', 'https://www.google.com/s2/favicons?domain=midjourney.com&sz=128', 'https://midjourney.com', 'https://midjourney.com/account'),
+('Cursor Pro', 'Productivity', 20.00, 'monthly', 'https://www.google.com/s2/favicons?domain=cursor.com&sz=128', 'https://cursor.com', 'https://cursor.com/settings'),
+('Vercel Pro', 'Professional', 20.00, 'monthly', 'https://cdn.simpleicons.org/vercel', 'https://vercel.com', 'https://vercel.com/account/billing'),
+('Stripe', 'Professional', 0.00, 'monthly', 'https://cdn.simpleicons.org/stripe', 'https://stripe.com', 'https://dashboard.stripe.com/settings/billing'),
+('AWS', 'Cloud', 29.99, 'monthly', 'https://cdn.simpleicons.org/amazonwebservices', 'https://aws.amazon.com', 'https://console.aws.amazon.com/billing'),
+('Cloudflare', 'Cloud', 5.00, 'monthly', 'https://cdn.simpleicons.org/cloudflare', 'https://cloudflare.com', 'https://dash.cloudflare.com/profile/billing'),
+('Bitwarden', 'Security', 3.33, 'monthly', 'https://cdn.simpleicons.org/bitwarden', 'https://bitwarden.com', 'https://vault.bitwarden.com/#/settings/subscription'),
+('Surfshark', 'Security', 12.95, 'monthly', 'https://cdn.simpleicons.org/surfshark', 'https://surfshark.com', 'https://my.surfshark.com/account'),
+('Bumble', 'Other', 29.99, 'monthly', 'https://cdn.simpleicons.org/bumble', 'https://bumble.com', 'https://bumble.com/en/help'),
+('Tinder', 'Other', 14.99, 'monthly', 'https://cdn.simpleicons.org/tinder', 'https://tinder.com', 'https://tinder.com/settings'),
+('MasterClass', 'Education', 10.00, 'monthly', 'https://www.google.com/s2/favicons?domain=masterclass.com&sz=128', 'https://masterclass.com', 'https://www.masterclass.com/account/edit'),
+('Brilliant', 'Education', 11.99, 'monthly', 'https://www.google.com/s2/favicons?domain=brilliant.org&sz=128', 'https://brilliant.org', 'https://brilliant.org/account/'),
+('Codecademy', 'Education', 17.49, 'monthly', 'https://cdn.simpleicons.org/codecademy', 'https://codecademy.com', 'https://www.codecademy.com/account/billing'),
+('Blinkist', 'Education', 12.49, 'monthly', 'https://www.google.com/s2/favicons?domain=blinkist.com&sz=128', 'https://blinkist.com', 'https://www.blinkist.com/nc/settings'),
+('Walmart+', 'Shopping', 12.95, 'monthly', 'https://cdn.simpleicons.org/walmart', 'https://walmart.com', 'https://www.walmart.com/plus/manage'),
+('Instacart+', 'Shopping', 9.99, 'monthly', 'https://cdn.simpleicons.org/instacart', 'https://instacart.com', 'https://www.instacart.com/store/account/manage_subscription'),
+('DoorDash DashPass', 'Shopping', 9.99, 'monthly', 'https://cdn.simpleicons.org/doordash', 'https://doordash.com', 'https://www.doordash.com/consumer/membership/'),
+('Uber One', 'Shopping', 9.99, 'monthly', 'https://cdn.simpleicons.org/uber', 'https://uber.com', 'https://account.uber.com/spending'),
+('Planet Fitness', 'Fitness', 25.00, 'monthly', 'https://www.google.com/s2/favicons?domain=planetfitness.com&sz=128', 'https://planetfitness.com', NULL),
+('MyFitnessPal', 'Fitness', 19.99, 'monthly', 'https://cdn.simpleicons.org/myfitnesspal', 'https://myfitnesspal.com', 'https://www.myfitnesspal.com/account/subscriptions'),
+('Apple Fitness+', 'Fitness', 9.99, 'monthly', 'https://cdn.simpleicons.org/apple', 'https://apple.com/apple-fitness-plus', 'https://support.apple.com/en-us/HT202039'),
+('Noom', 'Health', 32.00, 'monthly', 'https://www.google.com/s2/favicons?domain=noom.com&sz=128', 'https://noom.com', 'https://www.noom.com/support'),
+('BetterHelp', 'Health', 65.00, 'monthly', 'https://www.google.com/s2/favicons?domain=betterhelp.com&sz=128', 'https://betterhelp.com', 'https://www.betterhelp.com/account/settings'),
+('Kindle Unlimited', 'Entertainment', 11.99, 'monthly', 'https://cdn.simpleicons.org/kindle', 'https://amazon.com/kindle-dbs/hz/subscribe/ku', 'https://www.amazon.com/hz/mycd/myx#/home/settings/payment'),
+('Mubi', 'Entertainment', 14.99, 'monthly', 'https://cdn.simpleicons.org/mubi', 'https://mubi.com', 'https://mubi.com/account'),
+('SoundCloud Go+', 'Music', 9.99, 'monthly', 'https://cdn.simpleicons.org/soundcloud', 'https://soundcloud.com', 'https://soundcloud.com/settings/account'),
+('Scribd', 'Entertainment', 11.99, 'monthly', 'https://cdn.simpleicons.org/scribd', 'https://scribd.com', 'https://www.scribd.com/account-settings/subscription')
+) AS v(name, category, default_price, billing_cycle, logo_url, website_url, cancel_url)
+WHERE NOT EXISTS (SELECT 1 FROM subscription_catalog sc WHERE sc.name = v.name);
