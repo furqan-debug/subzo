@@ -171,6 +171,66 @@
       0 2px 12px -2px hsl(0 0% 0% / 0.4),
       inset 0 1px 0 0 hsl(var(--foreground) / 0.04);
   }
+
+  /* Pro Monthly hero card */
+  .hero-card-pro {
+    background: linear-gradient(
+      145deg,
+      hsl(245 28% 13%) 0%,
+      hsl(255 32% 18%) 40%,
+      hsl(240 25% 12%) 100%
+    );
+    box-shadow:
+      0 0 0 1px hsl(var(--primary) / 0.15),
+      0 8px 50px -8px hsl(var(--primary) / 0.25),
+      0 4px 20px -4px hsl(0 0% 0% / 0.5),
+      inset 0 1px 0 0 hsl(var(--foreground) / 0.06);
+  }
+
+  /* Pro Elite (Annual) hero card */
+  .hero-card-elite {
+    background: linear-gradient(
+      145deg,
+      hsl(250 30% 14%) 0%,
+      hsl(260 35% 19%) 35%,
+      hsl(235 28% 15%) 70%,
+      hsl(245 25% 12%) 100%
+    );
+    box-shadow:
+      0 0 0 1px hsl(45 80% 55% / 0.12),
+      0 8px 60px -8px hsl(var(--primary) / 0.3),
+      0 4px 30px -4px hsl(45 80% 55% / 0.08),
+      0 2px 12px -2px hsl(0 0% 0% / 0.5),
+      inset 0 1px 0 0 hsl(45 80% 55% / 0.08);
+  }
+
+  .hero-card-elite::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, hsl(45 80% 55% / 0.5) 30%, hsl(var(--primary) / 0.6) 70%, transparent 100%);
+    animation: elite-shine 4s ease-in-out infinite;
+  }
+
+  @keyframes elite-shine {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  /* Pro badge */
+  .badge-pro {
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(var(--primary-glow) / 0.1));
+    box-shadow: 0 0 12px -3px hsl(var(--primary) / 0.3);
+  }
+
+  /* Elite badge */
+  .badge-elite {
+    background: linear-gradient(135deg, hsl(45 80% 55% / 0.15), hsl(35 90% 50% / 0.1));
+    box-shadow: 0 0 16px -3px hsl(45 80% 55% / 0.3);
+  }
 }
 
 /* Smooth scroll & touch */
