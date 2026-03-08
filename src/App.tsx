@@ -10,6 +10,8 @@ import { useDeepLinkHandler } from "@/hooks/useDeepLinkHandler";
 import { initializeGoogleAuth } from "@/hooks/useGoogleAuth";
 import { useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
+import { addNotificationTapListener } from "@/hooks/useNotifications";
+import { useNavigate } from "react-router-dom";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AppLayout from "@/components/AppLayout";
 import PageTransition from "@/components/PageTransition";
