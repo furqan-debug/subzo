@@ -2,6 +2,7 @@
  * Local subscription logo resolver using the `simple-icons` package.
  * Returns SVG data URIs so icons load from the JS bundle — no CDN needed.
  */
+import * as simpleIcons from 'simple-icons';
 
 const LOGO_MAP: Record<string, { slug: string; color: string }> = {
   'Netflix': { slug: 'netflix', color: '#E50914' },
@@ -48,7 +49,6 @@ const LOGO_MAP: Record<string, { slug: string; color: string }> = {
   'Kindle Unlimited': { slug: 'amazonkindle', color: '#FF9900' },
   'Xbox Game Pass': { slug: 'xbox', color: '#107C10' },
   'Nintendo Switch Online': { slug: 'nintendoswitch', color: '#E60012' },
-  'Peacock': { slug: 'peacock', color: '#000000' },
   'ESPN+': { slug: 'espn', color: '#FF1F1F' },
   'Tidal': { slug: 'tidal', color: '#000000' },
   'Deezer': { slug: 'deezer', color: '#FEAA2D' },
@@ -62,7 +62,6 @@ const LOGO_MAP: Record<string, { slug: string; color: string }> = {
   'Heroku': { slug: 'heroku', color: '#430098' },
   'GitLab': { slug: 'gitlab', color: '#FC6D26' },
   'Jira': { slug: 'jira', color: '#0052CC' },
-  'Confluence': { slug: 'confluence', color: '#172B4D' },
   'Monday.com': { slug: 'mondaydotcom', color: '#6C00FF' },
   'Airtable': { slug: 'airtable', color: '#18BFFF' },
   'Miro': { slug: 'miro', color: '#050038' },
@@ -78,64 +77,25 @@ const LOGO_MAP: Record<string, { slug: string; color: string }> = {
   'Wix': { slug: 'wix', color: '#0C6EFC' },
 };
 
-// Cache resolved logos so we only build the data URI once per slug
+// Pre-build the cache at module load time
 const cache = new Map<string, string>();
+
+function buildCache() {
+  const icons = simpleIcons as Record<string, { svg?: string }>;
+  for (const [name, entry] of Object.entries(LOGO_MAP)) {
+    const key = `si${entry.slug.charAt(0).toUpperCase()}${entry.slug.slice(1)}`;
+    const icon = icons[key];
+    if (!icon?.svg) continue;
+    const coloredSvg = icon.svg.replace('<svg', `<svg fill="${entry.color}"`);
+    cache.set(name, `data:image/svg+xml,${encodeURIComponent(coloredSvg)}`);
+  }
+}
+
+buildCache();
 
 /**
  * Returns an SVG data-URI for the given subscription name, or `null` if not mapped.
- * Uses dynamic import to keep the initial bundle lean — each icon is resolved on first call.
  */
 export function getLocalLogoUrl(name: string): string | null {
-  const entry = LOGO_MAP[name];
-  if (!entry) return null;
-
-  if (cache.has(name)) return cache.get(name)!;
-
-  try {
-    // simple-icons exposes each icon as a named export from its index
-    // We use require to synchronously resolve at runtime (works with Vite's SSR / bundler)
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const icons = require('simple-icons');
-    const key = `si${entry.slug.charAt(0).toUpperCase()}${entry.slug.slice(1)}`;
-    const icon = icons[key];
-    if (!icon?.svg) return null;
-
-    // Inject the brand color into the SVG
-    const coloredSvg = icon.svg.replace('<svg', `<svg fill="${entry.color}"`);
-    const dataUri = `data:image/svg+xml,${encodeURIComponent(coloredSvg)}`;
-    cache.set(name, dataUri);
-    return dataUri;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Async version that uses dynamic import — preferred for Vite/ESM environments.
- * Pre-loads and caches logos for a list of names.
- */
-export async function preloadLogos(names: string[]): Promise<void> {
-  const uniqueNames = names.filter((n) => LOGO_MAP[n] && !cache.has(n));
-  if (uniqueNames.length === 0) return;
-
-  try {
-    const icons = await import('simple-icons');
-    for (const name of uniqueNames) {
-      const entry = LOGO_MAP[name]!;
-      const key = `si${entry.slug.charAt(0).toUpperCase()}${entry.slug.slice(1)}`;
-      const icon = (icons as any)[key];
-      if (!icon?.svg) continue;
-      const coloredSvg = icon.svg.replace('<svg', `<svg fill="${entry.color}"`);
-      cache.set(name, `data:image/svg+xml,${encodeURIComponent(coloredSvg)}`);
-    }
-  } catch {
-    // silently fail — fallback to initials
-  }
-}
-
-/**
- * Synchronous getter that only reads from cache (after preloadLogos has run).
- */
-export function getCachedLogoUrl(name: string): string | null {
   return cache.get(name) ?? null;
 }
