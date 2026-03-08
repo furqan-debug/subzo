@@ -10,6 +10,8 @@ import { useDeepLinkHandler } from "@/hooks/useDeepLinkHandler";
 import { initializeGoogleAuth } from "@/hooks/useGoogleAuth";
 import { useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
+import { addNotificationTapListener } from "@/hooks/useNotifications";
+import { useNavigate } from "react-router-dom";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AppLayout from "@/components/AppLayout";
 import PageTransition from "@/components/PageTransition";
@@ -45,10 +47,16 @@ persistCache(queryClient);
 const AppRoutes = () => {
   useDeepLinkHandler();
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     initializeGoogleAuth();
   }, []);
+
+  // Listen for notification taps → deep link to subscription detail
+  useEffect(() => {
+    return addNotificationTapListener(navigate);
+  }, [navigate]);
 
   return (
     <AnimatePresence>

@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { differenceInDays, subDays, setHours, setMinutes, setSeconds } from 'date-fns';
+import { differenceInDays, subDays, setHours, setMinutes, setSeconds, addDays, startOfWeek, endOfWeek, isWithinInterval } from 'date-fns';
 import type { Subscription } from './useSubscriptions';
 
 const isNative = Capacitor.isNativePlatform();
@@ -10,6 +10,53 @@ const isNative = Capacitor.isNativePlatform();
 const uuidToNotifId = (uuid: string): number => {
   return parseInt(uuid.replace(/-/g, '').substring(0, 8), 16) % 2147483647;
 };
+
+const WEEKLY_SUMMARY_ID = 999999;
+
+// ── Channel IDs ──
+const CHANNEL_RENEWALS = 'renewal_reminders';
+const CHANNEL_INSIGHTS = 'spending_insights';
+const CHANNEL_TRIALS = 'trial_alerts';
+
+/** Create Android notification channels (idempotent) */
+export const createNotificationChannels = async () => {
+  if (!isNative) return;
+
+  try {
+    await LocalNotifications.createChannel({
+      id: CHANNEL_RENEWALS,
+      name: 'Renewal Reminders',
+      description: 'Alerts before your subscriptions renew',
+      importance: 4, // HIGH
+      sound: 'default',
+      vibration: true,
+    });
+
+    await LocalNotifications.createChannel({
+      id: CHANNEL_INSIGHTS,
+      name: 'Spending Insights',
+      description: 'Weekly spending summaries and tips',
+      importance: 3, // DEFAULT
+      sound: 'default',
+      vibration: false,
+    });
+
+    await LocalNotifications.createChannel({
+      id: CHANNEL_TRIALS,
+      name: 'Trial Expiry Alerts',
+      description: 'Urgent alerts before free trials end',
+      importance: 4, // HIGH
+      sound: 'default',
+      vibration: true,
+    });
+  } catch (e) {
+    console.warn('Failed to create notification channels:', e);
+  }
+};
+
+/** Format currency amount */
+const fmt = (currency: string, amount: number) =>
+  `${currency}${amount.toFixed(2).replace(/\.00$/, '')}`;
 
 export const scheduleRenewalNotifications = async (
   subscriptions: Subscription[],
@@ -26,32 +73,97 @@ export const scheduleRenewalNotifications = async (
     }
 
     const now = new Date();
-    const notifications = subscriptions
-      .filter((s) => s.status === 'active')
-      .map((sub) => {
-        const renewalDate = new Date(sub.next_renewal);
-        const notifyDate = subDays(renewalDate, reminderDays);
-        // Set to 9:00 AM
-        const scheduledAt = setSeconds(setMinutes(setHours(notifyDate, 9), 0), 0);
+    const notifications: any[] = [];
 
-        if (scheduledAt <= now) return null;
+    const activeSubs = subscriptions.filter((s) => s.status === 'active');
 
-        const daysUntil = differenceInDays(renewalDate, notifyDate);
+    for (const sub of activeSubs) {
+      const renewalDate = new Date(sub.next_renewal);
 
-        return {
+      // ── Early reminder (X days before) ──
+      const earlyDate = subDays(renewalDate, reminderDays);
+      const earlyAt = setSeconds(setMinutes(setHours(earlyDate, 9), 0), 0);
+      if (earlyAt > now) {
+        const daysUntil = differenceInDays(renewalDate, earlyDate);
+        notifications.push({
           id: uuidToNotifId(sub.id),
-          title: 'Subscription Renewal',
-          body: `${sub.name} renews in ${daysUntil} day${daysUntil !== 1 ? 's' : ''} — ${currency}${sub.amount}`,
-          schedule: { at: scheduledAt },
+          title: '📅 Upcoming Renewal',
+          body: `${sub.name} renews in ${daysUntil} day${daysUntil !== 1 ? 's' : ''} — ${fmt(currency, sub.amount)}`,
+          schedule: { at: earlyAt },
+          channelId: CHANNEL_RENEWALS,
           sound: 'default' as const,
           smallIcon: 'ic_stat_icon_config_sample',
           iconColor: '#6366f1',
-        };
-      })
-      .filter(Boolean) as any[];
+          extra: { subscriptionId: sub.id, type: 'renewal_early' },
+        });
+      }
+
+      // ── Day-of reminder ──
+      const dayOfAt = setSeconds(setMinutes(setHours(renewalDate, 9), 0), 0);
+      if (dayOfAt > now) {
+        notifications.push({
+          id: uuidToNotifId(sub.id) + 1,
+          title: '🔔 Renewing Today',
+          body: `${sub.name} renews today — ${fmt(currency, sub.amount)}`,
+          schedule: { at: dayOfAt },
+          channelId: CHANNEL_RENEWALS,
+          sound: 'default' as const,
+          smallIcon: 'ic_stat_icon_config_sample',
+          iconColor: '#6366f1',
+          extra: { subscriptionId: sub.id, type: 'renewal_today' },
+        });
+      }
+
+      // ── Trial expiry alert (1 day before trial ends) ──
+      if (sub.trial_end_date) {
+        const trialEnd = new Date(sub.trial_end_date);
+        const trialAlertDate = subDays(trialEnd, 1);
+        const trialAt = setSeconds(setMinutes(setHours(trialAlertDate, 9), 0), 0);
+        if (trialAt > now) {
+          notifications.push({
+            id: uuidToNotifId(sub.id) + 2,
+            title: '⚠️ Trial Ending Tomorrow',
+            body: `Your ${sub.name} trial ends tomorrow — cancel before you're charged ${fmt(currency, sub.amount)}`,
+            schedule: { at: trialAt },
+            channelId: CHANNEL_TRIALS,
+            sound: 'default' as const,
+            smallIcon: 'ic_stat_icon_config_sample',
+            iconColor: '#ef4444',
+            extra: { subscriptionId: sub.id, type: 'trial_expiry' },
+          });
+        }
+      }
+    }
+
+    // ── Weekly spending summary (next Monday at 10 AM) ──
+    const nextMonday = startOfWeek(addDays(now, 7), { weekStartsOn: 1 });
+    const weekEnd = endOfWeek(nextMonday, { weekStartsOn: 1 });
+    const weekRenewals = activeSubs.filter((s) => {
+      const d = new Date(s.next_renewal);
+      return isWithinInterval(d, { start: nextMonday, end: weekEnd });
+    });
+
+    if (weekRenewals.length > 0) {
+      const weekTotal = weekRenewals.reduce((sum, s) => sum + s.amount, 0);
+      const summaryAt = setSeconds(setMinutes(setHours(nextMonday, 10), 0), 0);
+      if (summaryAt > now) {
+        notifications.push({
+          id: WEEKLY_SUMMARY_ID,
+          title: '💰 Weekly Summary',
+          body: `You have ${weekRenewals.length} renewal${weekRenewals.length !== 1 ? 's' : ''} this week totaling ${fmt(currency, weekTotal)}`,
+          schedule: { at: summaryAt, every: 'week' as const },
+          channelId: CHANNEL_INSIGHTS,
+          sound: 'default' as const,
+          smallIcon: 'ic_stat_icon_config_sample',
+          iconColor: '#10b981',
+          extra: { type: 'weekly_summary' },
+        });
+      }
+    }
 
     if (notifications.length > 0) {
       await LocalNotifications.schedule({ notifications });
+      console.log(`Scheduled ${notifications.length} notifications`);
     }
   } catch (e) {
     console.warn('Failed to schedule notifications:', e);
@@ -71,6 +183,29 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
     console.warn('Notification permission error:', e);
     return false;
   }
+};
+
+/** Set up listener for notification taps — returns cleanup function */
+export const addNotificationTapListener = (
+  navigate: (path: string) => void,
+) => {
+  if (!isNative) return () => {};
+
+  const listener = LocalNotifications.addListener(
+    'localNotificationActionPerformed',
+    (event) => {
+      const extra = event.notification.extra;
+      if (extra?.subscriptionId) {
+        navigate(`/subscription/${extra.subscriptionId}`);
+      } else if (extra?.type === 'weekly_summary') {
+        navigate('/analytics');
+      }
+    },
+  );
+
+  return () => {
+    listener.then((l) => l.remove());
+  };
 };
 
 export const useNotifications = (
