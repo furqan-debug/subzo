@@ -178,7 +178,6 @@ const AddSubscription = () => {
           ) : (
             <div className="grid grid-cols-2 gap-2.5">
               {catalog?.map((item, i) => {
-                const logoSrc = getLogoSrc(item);
                 return (
                   <div
                     key={item.id}
