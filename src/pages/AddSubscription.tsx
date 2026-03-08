@@ -15,6 +15,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { playAddCelebration } from '@/lib/celebrations';
 import { useProfile } from '@/hooks/useProfile';
 import { getSubscriptionLimit, FREE_SUBSCRIPTION_LIMIT } from '@/lib/planFeatures';
+import SubscriptionLogo from '@/components/SubscriptionLogo';
 
 const categories = ['Entertainment', 'Music', 'Productivity', 'Cloud', 'Fitness', 'Health', 'Security', 'Education', 'News', 'Gaming', 'Shopping', 'Professional', 'Other'];
 
