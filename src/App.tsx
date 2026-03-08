@@ -47,10 +47,16 @@ persistCache(queryClient);
 const AppRoutes = () => {
   useDeepLinkHandler();
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     initializeGoogleAuth();
   }, []);
+
+  // Listen for notification taps → deep link to subscription detail
+  useEffect(() => {
+    return addNotificationTapListener(navigate);
+  }, [navigate]);
 
   return (
     <AnimatePresence>
