@@ -43,28 +43,6 @@ const AddSubscription = () => {
   const [discountPercentage, setDiscountPercentage] = useState('');
   const [discountEndDate, setDiscountEndDate] = useState('');
 
-  const [logoFallbackStep, setLogoFallbackStep] = useState<Record<string, number>>({});
-
-  const getWebsiteFavicon = (websiteUrl: string | null) => {
-    if (!websiteUrl) return null;
-    try {
-      const domain = new URL(websiteUrl).hostname;
-      return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-    } catch {
-      return null;
-    }
-  };
-
-  const getLogoSrc = (item: CatalogItem) => {
-    const step = logoFallbackStep[item.id] ?? 0;
-    if (step === 0) return item.logo_url;
-    if (step === 1) return getWebsiteFavicon(item.website_url);
-    return null;
-  };
-
-  const handleLogoError = (item: CatalogItem) => {
-    setLogoFallbackStep((prev) => ({ ...prev, [item.id]: (prev[item.id] ?? 0) + 1 }));
-  };
 
   const getNextRenewal = (start: string, billing: string) => {
     const d = new Date(start);
