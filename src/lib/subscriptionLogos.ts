@@ -9,21 +9,22 @@ const LOGO_MAP: Record<string, { slug: string; color: string }> = {
   'Netflix': { slug: 'netflix', color: '#E50914' },
   'Disney+': { slug: 'disneyplus', color: '#113CCF' },
   'HBO Max': { slug: 'hbo', color: '#5822B4' },
-  'Paramount+': { slug: 'paramountplus', color: '#0064FF' },
+  'Paramount+': { slug: 'paramount', color: '#0064FF' },
   'Apple TV+': { slug: 'appletv', color: '#000000' },
   'Crunchyroll': { slug: 'crunchyroll', color: '#F47521' },
   'Audible': { slug: 'audible', color: '#F8991C' },
   'Twitch': { slug: 'twitch', color: '#9146FF' },
   'Hulu': { slug: 'hulu', color: '#1CE783' },
   'Peacock': { slug: 'peacock', color: '#000000' },
+  'Mubi': { slug: 'mubi', color: '#000000' },
 
   // Music
   'Spotify': { slug: 'spotify', color: '#1DB954' },
   'YouTube Premium': { slug: 'youtube', color: '#FF0000' },
   'Apple Music': { slug: 'applemusic', color: '#FA243C' },
   'Tidal': { slug: 'tidal', color: '#000000' },
-  'Deezer': { slug: 'deezer', color: '#FEAA2D' },
-  'SoundCloud Go': { slug: 'soundcloud', color: '#FF3300' },
+  'Deezer': { slug: 'deezer', color: '#A238FF' },
+  'SoundCloud Go+': { slug: 'soundcloud', color: '#FF3300' },
   'Pandora': { slug: 'pandora', color: '#224099' },
 
   // Productivity
@@ -56,6 +57,7 @@ const LOGO_MAP: Record<string, { slug: string; color: string }> = {
   'iCloud+': { slug: 'icloud', color: '#3693F3' },
   'Dropbox': { slug: 'dropbox', color: '#0061FF' },
   'Vercel': { slug: 'vercel', color: '#000000' },
+  'Vercel Pro': { slug: 'vercel', color: '#000000' },
   'Netlify': { slug: 'netlify', color: '#00C7B7' },
   'DigitalOcean': { slug: 'digitalocean', color: '#0080FF' },
   'AWS': { slug: 'amazonwebservices', color: '#232F3E' },
@@ -68,7 +70,7 @@ const LOGO_MAP: Record<string, { slug: string; color: string }> = {
   'Bitwarden': { slug: 'bitwarden', color: '#175DDC' },
   'NordVPN': { slug: 'nordvpn', color: '#4687FF' },
   'ExpressVPN': { slug: 'expressvpn', color: '#DA3940' },
-  'SurfShark': { slug: 'surfshark', color: '#178BF1' },
+  'Surfshark': { slug: 'surfshark', color: '#178BF1' },
 
   // Education
   'Coursera Plus': { slug: 'coursera', color: '#0056D2' },
@@ -82,11 +84,12 @@ const LOGO_MAP: Record<string, { slug: string; color: string }> = {
   'Uber One': { slug: 'uber', color: '#000000' },
   'Instacart+': { slug: 'instacart', color: '#43B02A' },
   'Shopify': { slug: 'shopify', color: '#7AB55C' },
+  'Walmart+': { slug: 'walmart', color: '#0071CE' },
 
   // Gaming
   'PlayStation Plus': { slug: 'playstation', color: '#003791' },
   'Xbox Game Pass': { slug: 'xbox', color: '#107C10' },
-  'Nintendo Switch Online': { slug: 'nintendoswitch', color: '#E60012' },
+  'Nintendo Switch Online': { slug: 'nintendo', color: '#E60012' },
   'EA Play': { slug: 'ea', color: '#000000' },
   'Reddit Premium': { slug: 'reddit', color: '#FF4500' },
 
@@ -94,15 +97,23 @@ const LOGO_MAP: Record<string, { slug: string; color: string }> = {
   'Bumble': { slug: 'bumble', color: '#FFC629' },
   'Tinder': { slug: 'tinder', color: '#FF6B6B' },
 
-  // Fitness
+  // Fitness & Health
   'Apple Fitness+': { slug: 'apple', color: '#000000' },
   'Strava': { slug: 'strava', color: '#FC4C02' },
   'Peloton': { slug: 'peloton', color: '#000000' },
+  'Headspace': { slug: 'headspace', color: '#F47D31' },
+  'MyFitnessPal': { slug: 'myfitnesspal', color: '#0070E0' },
 
   // News & Media
   'Medium': { slug: 'medium', color: '#000000' },
   'Substack': { slug: 'substack', color: '#FF6719' },
-  'The New York Times': { slug: 'newyorktimes', color: '#000000' },
+  'The New York Times': { slug: 'nytimes', color: '#000000' },
+  'Scribd': { slug: 'scribd', color: '#1A7BBA' },
+
+  // AI
+  'Gemini Advanced': { slug: 'googlegemini', color: '#8E75B2' },
+  'Perplexity Pro': { slug: 'perplexity', color: '#1FB8CD' },
+  'Cursor Pro': { slug: 'cursor', color: '#000000' },
 
   // Marketing & Business
   'Mailchimp': { slug: 'mailchimp', color: '#FFE01B' },
@@ -113,13 +124,8 @@ const LOGO_MAP: Record<string, { slug: string; color: string }> = {
   'Wix': { slug: 'wix', color: '#0C6EFC' },
   'Google Workspace': { slug: 'google', color: '#4285F4' },
   'Microsoft 365': { slug: 'microsoft', color: '#5E5E5E' },
-
-  // Additional services
   'LinkedIn Premium': { slug: 'linkedin', color: '#0A66C2' },
-  'Kindle Unlimited': { slug: 'amazon', color: '#FF9900' },
-  'MyFitnessPal': { slug: 'myfitnesspal', color: '#0070E0' },
-  'Walmart+': { slug: 'walmart', color: '#0071CE' },
-  'Cursor Pro': { slug: 'cursor', color: '#000000' },
+  'Kindle Unlimited': { slug: 'amazonkindle', color: '#FF9900' },
 };
 
 // Pre-build the cache at module load time
