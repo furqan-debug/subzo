@@ -113,6 +113,13 @@ const LOGO_MAP: Record<string, { slug: string; color: string }> = {
   'Wix': { slug: 'wix', color: '#0C6EFC' },
   'Google Workspace': { slug: 'google', color: '#4285F4' },
   'Microsoft 365': { slug: 'microsoft', color: '#5E5E5E' },
+
+  // Additional services
+  'LinkedIn Premium': { slug: 'linkedin', color: '#0A66C2' },
+  'Kindle Unlimited': { slug: 'amazon', color: '#FF9900' },
+  'MyFitnessPal': { slug: 'myfitnesspal', color: '#0070E0' },
+  'Walmart+': { slug: 'walmart', color: '#0071CE' },
+  'Cursor Pro': { slug: 'cursor', color: '#000000' },
 };
 
 // Pre-build the cache at module load time
