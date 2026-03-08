@@ -105,7 +105,7 @@ const AddSubscription = () => {
   const handleCustomSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isAtLimit) {
-      toast({ title: 'Subscription limit reached', description: `Free plan allows ${FREE_SUBSCRIPTION_LIMIT} subscriptions. Upgrade to add more.`, variant: 'destructive' });
+      toast({ title: '🔒 Subscription limit reached', description: `Free plan allows ${FREE_SUBSCRIPTION_LIMIT} subscriptions. Upgrade to add more.` });
       return;
     }
     try {
