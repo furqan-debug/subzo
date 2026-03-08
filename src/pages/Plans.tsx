@@ -14,7 +14,7 @@ const proFeatures = [
   { text: 'Smart renewal reminders', icon: Bell },
   { text: 'Full analytics & insights', icon: BarChart3 },
   { text: 'Calendar view', icon: CalendarDays },
-  { text: 'Export data as CSV', icon: Download },
+  { text: 'Export data as CSV/PDF', icon: Download },
   { text: '⭐ Priority Support', icon: Shield },
 ];
 
