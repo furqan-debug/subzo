@@ -271,11 +271,7 @@ const Index = () => {
                     <div className="glass-card w-[140px] p-3">
                       <div className="relative z-10 flex flex-col items-center text-center gap-2">
                         <div className="icon-premium h-10 w-10">
-                          {sub.logo_url ? (
-                            <img src={sub.logo_url} alt="" className="h-6 w-6 object-contain" loading="lazy" decoding="async" />
-                          ) : (
-                            <span className="text-sm font-semibold text-muted-foreground">{sub.name?.[0] ?? '?'}</span>
-                          )}
+                          <SubscriptionLogo name={sub.name} logoUrl={sub.logo_url} />
                         </div>
                         <p className="text-xs font-medium truncate w-full">{sub.name}</p>
                         <span className="text-[10px] font-semibold text-warning">
