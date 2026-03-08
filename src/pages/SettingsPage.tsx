@@ -326,8 +326,8 @@ const SettingsPage = () => {
         <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-3 px-1">
           Data
         </p>
-        <FeatureGate feature="export_csv" blur title="Export your data" description="CSV export is available on Pro plans.">
-          <div className="glass-card overflow-hidden">
+        <FeatureGate feature="export_csv" blur title="Export your data" description="Data export is available on Pro plans.">
+          <div className="glass-card divide-y divide-border/50 overflow-hidden">
             <button
               onClick={handleExportCSV}
               className="flex items-center justify-between w-full px-5 py-4 text-left hover:bg-secondary/30 transition-colors"
@@ -336,7 +336,27 @@ const SettingsPage = () => {
                 <Download className="h-4 w-4 text-accent" />
                 <div>
                   <span className="text-sm font-medium text-foreground">Export CSV</span>
-                  <p className="text-xs text-muted-foreground">Download all subscriptions as a spreadsheet</p>
+                  <p className="text-xs text-muted-foreground">Raw data as a spreadsheet</p>
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+            </button>
+            <button
+              onClick={() => {
+                if (!subscriptions?.length) {
+                  toast({ title: 'No data', description: 'You have no subscriptions to export.' });
+                  return;
+                }
+                exportSubscriptionsPdf(subscriptions, currency);
+                toast({ title: 'PDF exported!', description: `${subscriptions.length} subscriptions exported.` });
+              }}
+              className="flex items-center justify-between w-full px-5 py-4 text-left hover:bg-secondary/30 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <FileText className="h-4 w-4 text-primary" />
+                <div>
+                  <span className="text-sm font-medium text-foreground">Export PDF</span>
+                  <p className="text-xs text-muted-foreground">Designed report with summary & table</p>
                 </div>
               </div>
               <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
