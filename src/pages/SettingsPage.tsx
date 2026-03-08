@@ -144,14 +144,42 @@ const SettingsPage = () => {
             <Label className="text-xs text-muted-foreground uppercase tracking-wider">Current Plan</Label>
           </div>
           <p className="font-medium text-foreground">
-            {subscriptionPlan ? planLabels[subscriptionPlan] || subscriptionPlan : 'No plan selected'}
+            {subscriptionPlan ? planLabels[subscriptionPlan] || subscriptionPlan : 'Free — Limited features'}
           </p>
+          {/* Plan badges */}
+          {subscriptionPlan && getPlanBadges(subscriptionPlan).length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {getPlanBadges(subscriptionPlan).map((badge) => (
+                <Badge key={badge.label} className={`${badge.color === 'accent' ? 'bg-accent/10 text-accent border-accent/20' : 'bg-primary/10 text-primary border-primary/20'} border`}>
+                  {badge.color === 'accent' ? <Sparkles className="h-3 w-3 mr-1" /> : <Shield className="h-3 w-3 mr-1" />}
+                  {badge.label}
+                </Badge>
+              ))}
+            </div>
+          )}
+          {/* Active features summary */}
+          {subscriptionPlan && (
+            <div className="space-y-1 pt-1">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Unlocked features</p>
+              <div className="flex flex-wrap gap-1.5">
+                {['Unlimited subs', 'Smart reminders', 'Full analytics', 'Calendar'].map((f) => (
+                  <span key={f} className="rounded-full bg-success/10 border border-success/20 px-2 py-0.5 text-[10px] font-medium text-success">{f}</span>
+                ))}
+                {canAccess(subscriptionPlan, 'export_csv') && (
+                  <span className="rounded-full bg-success/10 border border-success/20 px-2 py-0.5 text-[10px] font-medium text-success">CSV Export</span>
+                )}
+                {canAccess(subscriptionPlan, 'custom_categories') && (
+                  <span className="rounded-full bg-success/10 border border-success/20 px-2 py-0.5 text-[10px] font-medium text-success">Custom Categories</span>
+                )}
+              </div>
+            </div>
+          )}
           <Button
             variant="outline"
             className="w-full"
             onClick={() => navigate('/plans')}
           >
-            Change Plan
+            {subscriptionPlan ? 'Change Plan' : 'Upgrade'}
           </Button>
         </div>
       </div>
