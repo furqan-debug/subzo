@@ -2,12 +2,20 @@ import { describe, it, expect } from 'vitest';
 import * as simpleIcons from 'simple-icons';
 
 describe('debug slugs', () => {
-  it('find amazon related icons', () => {
-    const icons = simpleIcons as Record<string, { slug?: string; title?: string }>;
-    const amazonIcons = Object.values(icons)
-      .filter((v) => v && typeof v === 'object' && 'slug' in v && typeof v.slug === 'string' && v.slug.includes('amazon'))
-      .map((v) => ({ slug: v.slug, title: v.title }));
-    console.log('Amazon icons:', JSON.stringify(amazonIcons));
-    expect(amazonIcons.length).toBeGreaterThan(0);
+  it('check structure', () => {
+    const icons = simpleIcons as any;
+    // Check a known icon
+    const netflix = icons.siNetflix;
+    console.log('Netflix keys:', netflix ? Object.keys(netflix) : 'NOT FOUND');
+    console.log('Netflix slug:', netflix?.slug);
+    
+    // Find amazon
+    const keys = Object.keys(icons).filter(k => k.toLowerCase().includes('amazon'));
+    console.log('Amazon keys:', keys);
+    
+    const prime = icons.siAmazonprime || icons.siAmazonPrime || icons.siPrime;
+    console.log('Prime:', prime ? Object.keys(prime) : 'NOT FOUND');
+    
+    expect(netflix).toBeTruthy();
   });
 });
