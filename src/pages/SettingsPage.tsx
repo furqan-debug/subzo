@@ -320,7 +320,31 @@ const SettingsPage = () => {
         )}
       </div>
 
-      {/* ─── Account ─── */}
+      {/* ─── Data ─── */}
+      <div>
+        <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-3 px-1">
+          Data
+        </p>
+        <FeatureGate feature="export_csv" blur title="Export your data" description="CSV export is available on Pro plans.">
+          <div className="glass-card overflow-hidden">
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center justify-between w-full px-5 py-4 text-left hover:bg-secondary/30 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Download className="h-4 w-4 text-accent" />
+                <div>
+                  <span className="text-sm font-medium text-foreground">Export CSV</span>
+                  <p className="text-xs text-muted-foreground">Download all subscriptions as a spreadsheet</p>
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+            </button>
+          </div>
+        </FeatureGate>
+      </div>
+
+
       <div>
         <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-3 px-1">
           Account
