@@ -1,48 +1,92 @@
 
+# Make the App Smooth, Fast, and Offline-Ready
 
-# Make the Hero Card Feel Truly Premium Per Tier
+This plan focuses on three pillars: **performance**, **smoothness**, and **offline resilience** -- all achievable within the current React + Capacitor + Supabase stack.
 
-## Problem
-The current tier differences are too subtle — slightly different glow intensities and border colors. A user upgrading from Free to Pro sees almost the same card. There's no "wow" moment.
+---
 
-## Approach: Dramatically Different Cards Per Tier
+## 1. Offline Data Caching with React Query
 
-Instead of tweaking CSS opacity values, each tier gets a structurally different card with unique visual elements.
+React Query supports an "offline-first" mode out of the box. We'll configure it so users can browse their subscriptions even without internet.
 
-### Free Tier — Clean & Minimal
-- Current minimal design, no decoration
-- Simple greeting, plain text amount
-- Muted color palette, no glow orbs
-- Small "Unlock Pro features" text link at bottom
+### Changes to `src/App.tsx`:
+- Configure the global `QueryClient` with offline-friendly defaults:
+  - `gcTime: Infinity` -- keep cached data in memory permanently (until app restart)
+  - `staleTime: 5 * 60 * 1000` (5 minutes) -- reduce unnecessary refetches
+  - `retry: 2` with `retryDelay` for graceful network retries
+  - `networkMode: 'offlineFirst'` -- serve cache instantly, then sync in background
 
-### Pro Monthly — Animated & Vibrant
-- Purple gradient background with visible shimmer animation sweeping across the card
-- Animated gradient border (not just a static border color)
-- "Pro" badge with a subtle pulse-glow animation
-- A decorative horizontal divider line with gradient fade between greeting and amount
-- The yearly projection pill gets a slight glow ring
-- Subscription count shown in a styled chip instead of plain text
+### Changes to `src/hooks/useSubscriptions.ts` and `src/hooks/useProfile.ts`:
+- Remove per-query `staleTime` overrides (global default takes over)
+- Add `networkMode: 'offlineFirst'` to mutations so they queue when offline
 
-### Pro Elite (Annual) — Luxury & Gold
-- Deep purple-to-dark gradient with gold accent highlights
-- Animated gold shimmer line sweeping across the top
-- Floating particle dots (2-3 small gold circles with float animation at different speeds)
-- "Elite" badge with gold fill and star icon, continuous subtle glow animation
-- The spending amount uses a gold-tinted gradient text instead of the standard purple gradient
-- A "Premium Member" subtitle line under the greeting in gold muted text
-- Yearly projection pill in gold theme
-- Decorative corner accent (small radial gradient in top-right corner)
+---
 
-## Key Design Principles
-- Each tier upgrade should feel like opening a new level — not a config tweak
-- Animations reserved for paid tiers only (free = static, pro = shimmer, elite = shimmer + float)
-- Gold is exclusive to Elite — Pro never uses gold
-- Keep the premium fintech aesthetic, nothing cartoonish
+## 2. Persist Cache Across Sessions
 
-## Files to Modify
+### New utility: `src/lib/queryPersister.ts`
+- Create a lightweight localStorage-based persister that saves/restores the React Query cache
+- On app load, hydrate from localStorage; on cache updates, debounce-write to localStorage
+- This means even after closing and reopening the app, the last-known data is shown instantly
 
-| File | Changes |
-|------|---------|
-| `src/pages/Index.tsx` | Restructure hero card into 3 distinct render paths with unique layouts, decorative elements, animated particles for elite, gradient text variants |
-| `src/index.css` | Add gold gradient text class, floating particle keyframes, animated border shimmer, new tier-specific decorative utilities |
+### Changes to `src/App.tsx`:
+- Wrap the app with `PersistQueryClientProvider` from `@tanstack/react-query-persist-client` (already included with `@tanstack/react-query`)
+- Or implement a simpler manual approach: subscribe to query cache changes and persist to localStorage, then restore on init
 
+Given the dependency constraints (no new packages), we'll use a manual approach:
+- `queryClient.getQueryCache().subscribe()` to listen for changes
+- Debounce writes to `localStorage` 
+- On startup, call `queryClient.setQueryData()` for each stored key
+
+---
+
+## 3. Offline Status Indicator
+
+### New component: `src/components/OfflineBanner.tsx`
+- A small, animated banner that slides in at the top when `navigator.onLine` is false
+- Shows "You're offline -- showing cached data" with a subtle warning color
+- Auto-dismisses when back online with a brief "Back online" confirmation
+- Uses `online`/`offline` window events
+
+### Changes to `src/App.tsx`:
+- Add `<OfflineBanner />` inside the app tree
+
+---
+
+## 4. Performance Optimizations
+
+### Reduce animation overhead:
+- **`src/pages/Index.tsx`**: Remove staggered `delay` on subscription list items (already lean). Ensure `motion.div` uses `layout` prop sparingly
+- **`src/components/PageTransition.tsx`**: Keep the current 100ms transition (already fast)
+
+### Optimize images:
+- **`src/pages/AddSubscription.tsx`** and **`src/pages/Index.tsx`**: Add `loading="lazy"` and `decoding="async"` to all `<img>` tags for subscription logos (some already have `loading="lazy"`)
+
+### Font loading:
+- **`index.html`**: Add `font-display: swap` to the Google Fonts URL to prevent FOIT (flash of invisible text). Change the URL from `display=swap` (already present -- confirm it's working)
+
+---
+
+## 5. Smooth Touch Interactions
+
+### Changes to `src/index.css`:
+- Add `will-change: transform` to `.glass-card` for GPU-accelerated transitions
+- Add `touch-action: manipulation` on interactive elements to remove 300ms tap delay on mobile
+
+---
+
+## Technical Summary
+
+| File | Change |
+|---|---|
+| `src/App.tsx` | Configure QueryClient with offline-first defaults; add cache persistence; add OfflineBanner |
+| `src/lib/queryPersister.ts` | New file -- localStorage cache persist/restore utility |
+| `src/components/OfflineBanner.tsx` | New file -- offline status indicator component |
+| `src/hooks/useSubscriptions.ts` | Remove per-query staleTime, add offlineFirst to mutations |
+| `src/hooks/useProfile.ts` | Remove per-query staleTime |
+| `src/pages/Index.tsx` | Add `decoding="async"` to logo images |
+| `src/pages/AddSubscription.tsx` | Add `decoding="async"` to logo images |
+| `src/index.css` | Add `touch-action: manipulation` and `will-change: transform` for smooth touch |
+| `index.html` | Verify font-display swap is active |
+
+No new dependencies required -- all features use built-in React Query capabilities and browser APIs.
