@@ -19,6 +19,8 @@ const Index = () => {
   const deleteMutation = useDeleteSubscription();
   const { subscriptionPlan } = useProfile();
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const subLimit = getSubscriptionLimit(subscriptionPlan);
+  const isAtLimit = (subscriptions?.filter(s => s.status === 'active').length ?? 0) >= subLimit;
 
   const activeSubscriptions = useMemo(
     () => subscriptions?.filter((s) => s.status === 'active') ?? [],
