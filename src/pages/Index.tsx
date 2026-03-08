@@ -5,13 +5,14 @@ import { format, differenceInDays, parseISO } from 'date-fns';
 import { useSubscriptions, useDeleteSubscription } from '@/hooks/useSubscriptions';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, TrendingUp, Calendar, ArrowUpRight, ArrowDown, ArrowUp, Clock, Crown, X } from 'lucide-react';
+import { Plus, TrendingUp, Calendar, ArrowUpRight, ArrowDown, ArrowUp, Clock, Crown, X, Lock } from 'lucide-react';
 import { IndexSkeleton } from '@/components/SkeletonLoaders';
 import { useProfile } from '@/hooks/useProfile';
 import AnimatedNumber from '@/components/AnimatedNumber';
 import SwipeableSubscriptionCard from '@/components/SwipeableSubscriptionCard';
 import { playDeleteFeedback } from '@/lib/celebrations';
 import { toast } from '@/hooks/use-toast';
+import { getSubscriptionLimit, FREE_SUBSCRIPTION_LIMIT } from '@/lib/planFeatures';
 
 const Index = () => {
   const { data: subscriptions, isLoading } = useSubscriptions();
