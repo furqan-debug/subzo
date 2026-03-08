@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { getLocalLogoUrl } from '@/lib/subscriptionLogos';
 
 interface SubscriptionLogoProps {
@@ -13,19 +14,14 @@ const sizeMap = {
   lg: { img: 'h-9 w-9', text: 'text-2xl' },
 };
 
-/**
- * Renders a subscription logo with local-first fallback:
- * 1. Local SVG from simple-icons bundle
- * 2. Remote logo_url from DB
- * 3. Text initial badge
- */
 const SubscriptionLogo = ({ name, logoUrl, size = 'md', className = '' }: SubscriptionLogoProps) => {
+  const [imgError, setImgError] = useState(false);
   const localSrc = getLocalLogoUrl(name);
-  const src = localSrc ?? logoUrl;
+  const src = localSrc ?? (imgError ? null : logoUrl);
   const s = sizeMap[size];
 
   if (src) {
-    return <img src={src} alt={`${name} logo`} className={`${s.img} object-contain ${className}`} loading="lazy" decoding="async" />;
+    return <img src={src} alt={`${name} logo`} className={`${s.img} object-contain ${className}`} loading="lazy" decoding="async" onError={() => setImgError(true)} />;
   }
 
   return <span className={`${s.text} font-semibold text-muted-foreground ${className}`}>{name?.[0] ?? '?'}</span>;
