@@ -29,11 +29,13 @@ const currencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'INR', 'JPY'];
 const planLabels: Record<string, string> = {
   monthly: 'Pro Monthly',
   annual: 'Pro Annual',
+  '6month': 'Pro',
 };
 
 const planPrices: Record<string, string> = {
   monthly: '$1.99/mo',
   annual: '$14.99/yr',
+  '6month': '',
 };
 
 const SettingsPage = () => {
