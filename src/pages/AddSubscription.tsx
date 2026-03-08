@@ -23,7 +23,13 @@ const AddSubscription = () => {
   const [search, setSearch] = useState('');
   const [showCustom, setShowCustom] = useState(false);
   const { data: catalog, isLoading: catalogLoading } = useCatalog(search || undefined);
+  const { data: subscriptions } = useSubscriptions();
+  const { subscriptionPlan } = useProfile();
   const addMutation = useAddSubscription();
+
+  const activeCount = subscriptions?.filter(s => s.status === 'active').length ?? 0;
+  const limit = getSubscriptionLimit(subscriptionPlan);
+  const isAtLimit = activeCount >= limit;
 
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
