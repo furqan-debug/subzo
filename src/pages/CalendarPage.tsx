@@ -7,6 +7,7 @@ import { useSubscriptions, Subscription } from '@/hooks/useSubscriptions';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { CalendarDays } from 'lucide-react';
+import SubscriptionLogo from '@/components/SubscriptionLogo';
 import FeatureGate from '@/components/FeatureGate';
 
 const CalendarPage = () => {
