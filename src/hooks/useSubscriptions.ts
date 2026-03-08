@@ -53,6 +53,16 @@ export const useSubscriptions = () => {
   });
 };
 
+const POPULARITY_RANK: Record<string, number> = {
+  'Netflix': 1, 'Spotify': 2, 'YouTube Premium': 3, 'Amazon Prime': 4,
+  'Disney+': 5, 'Apple Music': 6, 'HBO Max': 7, 'ChatGPT Plus': 8,
+  'Claude Pro': 9, 'Google One': 10, 'iCloud+': 11, 'Adobe Creative Cloud': 12,
+  'Microsoft 365': 13, 'Hulu': 14, 'Paramount+': 15, 'Apple TV+': 16,
+  'Notion': 17, 'Slack': 18, 'Zoom': 19, 'GitHub': 20,
+  'Figma': 21, 'Dropbox': 22, 'NordVPN': 23, 'Crunchyroll': 24,
+  'PlayStation Plus': 25,
+};
+
 export const useCatalog = (search?: string) => {
   return useQuery({
     queryKey: ['catalog', search],
@@ -61,7 +71,13 @@ export const useCatalog = (search?: string) => {
       if (search) query = query.ilike('name', `%${search}%`);
       const { data, error } = await query;
       if (error) throw error;
-      return data as CatalogItem[];
+      const items = data as CatalogItem[];
+      return items.sort((a, b) => {
+        const rankA = POPULARITY_RANK[a.name] ?? 999;
+        const rankB = POPULARITY_RANK[b.name] ?? 999;
+        if (rankA !== rankB) return rankA - rankB;
+        return a.name.localeCompare(b.name);
+      });
     },
     staleTime: 5 * 60 * 1000,
   });
