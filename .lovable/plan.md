@@ -1,92 +1,54 @@
 
-# Make the App Smooth, Fast, and Offline-Ready
 
-This plan focuses on three pillars: **performance**, **smoothness**, and **offline resilience** -- all achievable within the current React + Capacitor + Supabase stack.
+# Improve Android Notification System for User Engagement
 
----
+## Current State
+- Single notification type: renewal reminder X days before, at 9:00 AM
+- Only for Pro users
+- No notification channels, no grouping, no variety
 
-## 1. Offline Data Caching with React Query
+## Plan
 
-React Query supports an "offline-first" mode out of the box. We'll configure it so users can browse their subscriptions even without internet.
+### 1. Add Android Notification Channels
+Create distinct channels so users can control notification types independently in Android settings:
+- **Renewal Reminders** (high priority) — existing behavior
+- **Spending Insights** (default priority) — weekly/monthly spend summaries
+- **Trial Expiry Alerts** (high priority) — urgent alerts before free trials end
 
-### Changes to `src/App.tsx`:
-- Configure the global `QueryClient` with offline-friendly defaults:
-  - `gcTime: Infinity` -- keep cached data in memory permanently (until app restart)
-  - `staleTime: 5 * 60 * 1000` (5 minutes) -- reduce unnecessary refetches
-  - `retry: 2` with `retryDelay` for graceful network retries
-  - `networkMode: 'offlineFirst'` -- serve cache instantly, then sync in background
+Register channels on app startup via `LocalNotifications.createChannel()`.
 
-### Changes to `src/hooks/useSubscriptions.ts` and `src/hooks/useProfile.ts`:
-- Remove per-query `staleTime` overrides (global default takes over)
-- Add `networkMode: 'offlineFirst'` to mutations so they queue when offline
+### 2. Multi-tier Renewal Reminders
+Instead of one notification, schedule **two** per subscription:
+- **Early reminder**: X days before (existing, user-configured)
+- **Day-of reminder**: Morning of renewal day — "Netflix renews today — $15.99"
 
----
+Uses separate notification IDs (offset the base ID) so both can coexist.
 
-## 2. Persist Cache Across Sessions
+### 3. Trial Expiry Alerts
+For subscriptions with `trial_end_date`, schedule a notification **1 day before** trial ends:
+- "Your Spotify trial ends tomorrow — cancel before you're charged $9.99"
 
-### New utility: `src/lib/queryPersister.ts`
-- Create a lightweight localStorage-based persister that saves/restores the React Query cache
-- On app load, hydrate from localStorage; on cache updates, debounce-write to localStorage
-- This means even after closing and reopening the app, the last-known data is shown instantly
+This is high-value engagement that helps users feel the app is protecting their money.
 
-### Changes to `src/App.tsx`:
-- Wrap the app with `PersistQueryClientProvider` from `@tanstack/react-query-persist-client` (already included with `@tanstack/react-query`)
-- Or implement a simpler manual approach: subscribe to query cache changes and persist to localStorage, then restore on init
+### 4. Weekly Spending Summary
+Schedule a **recurring weekly notification** (e.g., every Monday at 10 AM):
+- "You have 3 renewals this week totaling $45.97"
 
-Given the dependency constraints (no new packages), we'll use a manual approach:
-- `queryClient.getQueryCache().subscribe()` to listen for changes
-- Debounce writes to `localStorage` 
-- On startup, call `queryClient.setQueryData()` for each stored key
+Uses `LocalNotifications.schedule` with `every: 'week'` repeat. The body text is computed at schedule time based on upcoming 7-day renewals.
 
----
+### 5. Notification Tap Deep Linking
+Add a `LocalNotifications.addListener('localNotificationActionPerformed')` handler to navigate users to the relevant subscription detail page when they tap a notification. Use `extra` data field to pass subscription ID.
 
-## 3. Offline Status Indicator
+### Files Modified
+- **`src/hooks/useNotifications.ts`** — Add channel creation, multi-tier reminders, trial alerts, weekly summary, and deep link listener
+- **`src/components/NotificationScheduler.tsx`** — Pass trial data through, register channels on mount
+- **`src/App.tsx`** — Add notification tap listener for deep linking (via `useNavigate`)
 
-### New component: `src/components/OfflineBanner.tsx`
-- A small, animated banner that slides in at the top when `navigator.onLine` is false
-- Shows "You're offline -- showing cached data" with a subtle warning color
-- Auto-dismisses when back online with a brief "Back online" confirmation
-- Uses `online`/`offline` window events
+### Notification ID Strategy
+```text
+Renewal reminder (early):  uuidToNotifId(sub.id)
+Renewal reminder (day-of): uuidToNotifId(sub.id) + 1
+Trial expiry alert:        uuidToNotifId(sub.id) + 2
+Weekly summary:            fixed ID 999999
+```
 
-### Changes to `src/App.tsx`:
-- Add `<OfflineBanner />` inside the app tree
-
----
-
-## 4. Performance Optimizations
-
-### Reduce animation overhead:
-- **`src/pages/Index.tsx`**: Remove staggered `delay` on subscription list items (already lean). Ensure `motion.div` uses `layout` prop sparingly
-- **`src/components/PageTransition.tsx`**: Keep the current 100ms transition (already fast)
-
-### Optimize images:
-- **`src/pages/AddSubscription.tsx`** and **`src/pages/Index.tsx`**: Add `loading="lazy"` and `decoding="async"` to all `<img>` tags for subscription logos (some already have `loading="lazy"`)
-
-### Font loading:
-- **`index.html`**: Add `font-display: swap` to the Google Fonts URL to prevent FOIT (flash of invisible text). Change the URL from `display=swap` (already present -- confirm it's working)
-
----
-
-## 5. Smooth Touch Interactions
-
-### Changes to `src/index.css`:
-- Add `will-change: transform` to `.glass-card` for GPU-accelerated transitions
-- Add `touch-action: manipulation` on interactive elements to remove 300ms tap delay on mobile
-
----
-
-## Technical Summary
-
-| File | Change |
-|---|---|
-| `src/App.tsx` | Configure QueryClient with offline-first defaults; add cache persistence; add OfflineBanner |
-| `src/lib/queryPersister.ts` | New file -- localStorage cache persist/restore utility |
-| `src/components/OfflineBanner.tsx` | New file -- offline status indicator component |
-| `src/hooks/useSubscriptions.ts` | Remove per-query staleTime, add offlineFirst to mutations |
-| `src/hooks/useProfile.ts` | Remove per-query staleTime |
-| `src/pages/Index.tsx` | Add `decoding="async"` to logo images |
-| `src/pages/AddSubscription.tsx` | Add `decoding="async"` to logo images |
-| `src/index.css` | Add `touch-action: manipulation` and `will-change: transform` for smooth touch |
-| `index.html` | Verify font-display swap is active |
-
-No new dependencies required -- all features use built-in React Query capabilities and browser APIs.
