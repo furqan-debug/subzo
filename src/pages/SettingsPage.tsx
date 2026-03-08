@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
-import { LogOut, User, Settings, Bell, Globe, Crown, Loader2 } from 'lucide-react';
+import { LogOut, User, Settings, Bell, Globe, Crown, Loader2, Shield, Sparkles } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useSubscriptions } from '@/hooks/useSubscriptions';
 import { scheduleRenewalNotifications } from '@/hooks/useNotifications';
 import { SettingsSkeleton } from '@/components/SkeletonLoaders';
 import { useNavigate } from 'react-router-dom';
+import { getPlanBadges, canAccess } from '@/lib/planFeatures';
+import { Badge } from '@/components/ui/badge';
 
 const currencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'INR', 'JPY'];
 
