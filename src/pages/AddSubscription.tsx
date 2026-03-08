@@ -1,18 +1,20 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { format, addMonths, addWeeks, addYears } from 'date-fns';
-import { useCatalog, useAddSubscription, type CatalogItem } from '@/hooks/useSubscriptions';
+import { useCatalog, useAddSubscription, useSubscriptions, type CatalogItem } from '@/hooks/useSubscriptions';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
-import { Search, ArrowLeft, Loader2, PenLine, Sparkles, ChevronDown } from 'lucide-react';
+import { Search, ArrowLeft, Loader2, PenLine, Sparkles, ChevronDown, Lock, Crown } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { playAddCelebration } from '@/lib/celebrations';
+import { useProfile } from '@/hooks/useProfile';
+import { getSubscriptionLimit, FREE_SUBSCRIPTION_LIMIT } from '@/lib/planFeatures';
 
 const categories = ['Entertainment', 'Music', 'Productivity', 'Cloud', 'Fitness', 'Health', 'Security', 'Education', 'News', 'Gaming', 'Shopping', 'Professional', 'Other'];
 
@@ -21,7 +23,13 @@ const AddSubscription = () => {
   const [search, setSearch] = useState('');
   const [showCustom, setShowCustom] = useState(false);
   const { data: catalog, isLoading: catalogLoading } = useCatalog(search || undefined);
+  const { data: subscriptions } = useSubscriptions();
+  const { subscriptionPlan } = useProfile();
   const addMutation = useAddSubscription();
+
+  const activeCount = subscriptions?.filter(s => s.status === 'active').length ?? 0;
+  const limit = getSubscriptionLimit(subscriptionPlan);
+  const isAtLimit = activeCount >= limit;
 
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
@@ -65,6 +73,10 @@ const AddSubscription = () => {
   };
 
   const handleCatalogSelect = async (item: CatalogItem) => {
+    if (isAtLimit) {
+      toast({ title: 'Subscription limit reached', description: `Free plan allows ${FREE_SUBSCRIPTION_LIMIT} subscriptions. Upgrade to add more.`, variant: 'destructive' });
+      return;
+    }
     try {
       await addMutation.mutateAsync({
         catalog_id: item.id,
@@ -92,6 +104,10 @@ const AddSubscription = () => {
 
   const handleCustomSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isAtLimit) {
+      toast({ title: 'Subscription limit reached', description: `Free plan allows ${FREE_SUBSCRIPTION_LIMIT} subscriptions. Upgrade to add more.`, variant: 'destructive' });
+      return;
+    }
     try {
       await addMutation.mutateAsync({
         catalog_id: null,
@@ -130,6 +146,25 @@ const AddSubscription = () => {
           {showCustom ? 'Custom subscription' : 'Add subscription'}
         </h1>
       </div>
+
+      {isAtLimit && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="glass-card border-warning/20 p-4">
+            <div className="relative z-10 flex items-start gap-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-warning/10">
+                <Lock className="h-4 w-4 text-warning" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">Limit reached ({activeCount}/{FREE_SUBSCRIPTION_LIMIT})</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Upgrade to add unlimited subscriptions.</p>
+                <Button asChild size="sm" className="mt-2 h-7 text-xs glow-primary bg-gradient-to-r from-primary to-primary-glow">
+                  <Link to="/plans"><Crown className="h-3 w-3 mr-1" />Upgrade</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {!showCustom ? (
         <>

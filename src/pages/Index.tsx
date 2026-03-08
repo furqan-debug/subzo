@@ -5,19 +5,22 @@ import { format, differenceInDays, parseISO } from 'date-fns';
 import { useSubscriptions, useDeleteSubscription } from '@/hooks/useSubscriptions';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, TrendingUp, Calendar, ArrowUpRight, ArrowDown, ArrowUp, Clock, Crown, X } from 'lucide-react';
+import { Plus, TrendingUp, Calendar, ArrowUpRight, ArrowDown, ArrowUp, Clock, Crown, X, Lock } from 'lucide-react';
 import { IndexSkeleton } from '@/components/SkeletonLoaders';
 import { useProfile } from '@/hooks/useProfile';
 import AnimatedNumber from '@/components/AnimatedNumber';
 import SwipeableSubscriptionCard from '@/components/SwipeableSubscriptionCard';
 import { playDeleteFeedback } from '@/lib/celebrations';
 import { toast } from '@/hooks/use-toast';
+import { getSubscriptionLimit, FREE_SUBSCRIPTION_LIMIT } from '@/lib/planFeatures';
 
 const Index = () => {
   const { data: subscriptions, isLoading } = useSubscriptions();
   const deleteMutation = useDeleteSubscription();
   const { subscriptionPlan } = useProfile();
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const subLimit = getSubscriptionLimit(subscriptionPlan);
+  const isAtLimit = (subscriptions?.filter(s => s.status === 'active').length ?? 0) >= subLimit;
 
   const activeSubscriptions = useMemo(
     () => subscriptions?.filter((s) => s.status === 'active') ?? [],
@@ -193,6 +196,26 @@ const Index = () => {
             })}
           </div>
         </motion.section>
+      )}
+
+      {/* Subscription limit warning */}
+      {isAtLimit && !subscriptionPlan && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="glass-card border-warning/20 p-4">
+            <div className="relative z-10 flex items-start gap-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-warning/10">
+                <Lock className="h-4 w-4 text-warning" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">Subscription limit reached</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Free plan allows up to {FREE_SUBSCRIPTION_LIMIT} subscriptions. Upgrade to track unlimited.</p>
+                <Button asChild size="sm" className="mt-2 h-7 text-xs glow-primary bg-gradient-to-r from-primary to-primary-glow">
+                  <Link to="/plans">Upgrade Now</Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
       )}
 
       {/* All subscriptions */}

@@ -1,75 +1,92 @@
 
+# Make the App Smooth, Fast, and Offline-Ready
 
-# Plan: Enhanced Subscription Plans with Feature Gating
+This plan focuses on three pillars: **performance**, **smoothness**, and **offline resilience** -- all achievable within the current React + Capacitor + Supabase stack.
 
-## Current State Analysis
+---
 
-**Plans page** lists 3 tiers (monthly/6-month/annual) with generic features but:
-- No actual feature gating exists — all users can access everything
-- Plans feel weak — features listed aren't enforced or differentiated
-- No subscription limits or premium badges shown
+## 1. Offline Data Caching with React Query
 
-## Proposed Changes
+React Query supports an "offline-first" mode out of the box. We'll configure it so users can browse their subscriptions even without internet.
 
-### 1. Define Clear, Enforced Feature Tiers
+### Changes to `src/App.tsx`:
+- Configure the global `QueryClient` with offline-friendly defaults:
+  - `gcTime: Infinity` -- keep cached data in memory permanently (until app restart)
+  - `staleTime: 5 * 60 * 1000` (5 minutes) -- reduce unnecessary refetches
+  - `retry: 2` with `retryDelay` for graceful network retries
+  - `networkMode: 'offlineFirst'` -- serve cache instantly, then sync in background
 
-| Feature | Free (No Plan) | Monthly | 6-Month | Annual |
-|---------|---------------|---------|---------|--------|
-| Track subscriptions | 3 max | Unlimited | Unlimited | Unlimited |
-| Smart reminders | ❌ | ✅ | ✅ | ✅ |
-| Analytics | Basic (totals only) | Full | Full | Full |
-| Calendar view | ❌ | ✅ | ✅ | ✅ |
-| Export data (CSV) | ❌ | ❌ | ✅ | ✅ |
-| Custom categories | ❌ | ❌ | ❌ | ✅ |
-| Priority support badge | ❌ | ❌ | ✅ | ✅ |
-| Early access badge | ❌ | ❌ | ❌ | ✅ |
+### Changes to `src/hooks/useSubscriptions.ts` and `src/hooks/useProfile.ts`:
+- Remove per-query `staleTime` overrides (global default takes over)
+- Add `networkMode: 'offlineFirst'` to mutations so they queue when offline
 
-### 2. Implementation
+---
 
-**A. Create `src/lib/planFeatures.ts`**
-- Define plan tiers and feature access map
-- Helper functions: `canAccessFeature(plan, feature)`, `getSubscriptionLimit(plan)`, `getPlanBadges(plan)`
+## 2. Persist Cache Across Sessions
 
-**B. Update `src/hooks/useProfile.ts`**
-- Export plan-aware helpers that components can use
+### New utility: `src/lib/queryPersister.ts`
+- Create a lightweight localStorage-based persister that saves/restores the React Query cache
+- On app load, hydrate from localStorage; on cache updates, debounce-write to localStorage
+- This means even after closing and reopening the app, the last-known data is shown instantly
 
-**C. Gate Features in UI**
+### Changes to `src/App.tsx`:
+- Wrap the app with `PersistQueryClientProvider` from `@tanstack/react-query-persist-client` (already included with `@tanstack/react-query`)
+- Or implement a simpler manual approach: subscribe to query cache changes and persist to localStorage, then restore on init
 
-1. **Index.tsx** — Limit free users to 3 subscriptions; show upgrade prompt when limit reached
-2. **Analytics.tsx** — Show full analytics only for paid users; free users see totals only with upgrade CTA
-3. **CalendarPage.tsx** — Lock behind paywall for free users
-4. **AddSubscription.tsx** — Block adding 4th subscription for free users
-5. **SettingsPage.tsx** — Show plan badges and active features
-6. **NotificationScheduler.tsx** — Only schedule reminders for paid users
+Given the dependency constraints (no new packages), we'll use a manual approach:
+- `queryClient.getQueryCache().subscribe()` to listen for changes
+- Debounce writes to `localStorage` 
+- On startup, call `queryClient.setQueryData()` for each stored key
 
-**D. Enhance Plans Page**
-- Update features list with clearer value props
-- Add "Current Plan" indicator
-- Show feature comparison table
-- Highlight what user gains by upgrading
+---
 
-**E. Add Premium Badges**
-- Show badges in UI for 6-month/annual subscribers (Priority Support, Early Access)
+## 3. Offline Status Indicator
 
-### 3. Files to Modify/Create
+### New component: `src/components/OfflineBanner.tsx`
+- A small, animated banner that slides in at the top when `navigator.onLine` is false
+- Shows "You're offline -- showing cached data" with a subtle warning color
+- Auto-dismisses when back online with a brief "Back online" confirmation
+- Uses `online`/`offline` window events
 
-| File | Action |
-|------|--------|
-| `src/lib/planFeatures.ts` | Create — feature gating logic |
-| `src/pages/Plans.tsx` | Update — enhanced UI, comparison, current plan |
-| `src/pages/Index.tsx` | Update — subscription limit, upgrade prompts |
-| `src/pages/Analytics.tsx` | Update — lock advanced features for free |
-| `src/pages/CalendarPage.tsx` | Update — paywall for free users |
-| `src/pages/AddSubscription.tsx` | Update — block when limit reached |
-| `src/pages/SettingsPage.tsx` | Update — show plan badges |
-| `src/components/NotificationScheduler.tsx` | Update — paid only |
-| `src/components/FeatureGate.tsx` | Create — reusable lock component |
+### Changes to `src/App.tsx`:
+- Add `<OfflineBanner />` inside the app tree
 
-### 4. UX Flow
+---
 
-- Free user adds 4th subscription → modal appears "Upgrade to unlock unlimited subscriptions"
-- Free user taps Calendar → sees locked state with upgrade CTA
-- Free user views Analytics → sees basic totals, advanced charts blurred/locked
-- Paid user sees appropriate badges in settings
-- All paid features immediately unlock upon plan selection
+## 4. Performance Optimizations
 
+### Reduce animation overhead:
+- **`src/pages/Index.tsx`**: Remove staggered `delay` on subscription list items (already lean). Ensure `motion.div` uses `layout` prop sparingly
+- **`src/components/PageTransition.tsx`**: Keep the current 100ms transition (already fast)
+
+### Optimize images:
+- **`src/pages/AddSubscription.tsx`** and **`src/pages/Index.tsx`**: Add `loading="lazy"` and `decoding="async"` to all `<img>` tags for subscription logos (some already have `loading="lazy"`)
+
+### Font loading:
+- **`index.html`**: Add `font-display: swap` to the Google Fonts URL to prevent FOIT (flash of invisible text). Change the URL from `display=swap` (already present -- confirm it's working)
+
+---
+
+## 5. Smooth Touch Interactions
+
+### Changes to `src/index.css`:
+- Add `will-change: transform` to `.glass-card` for GPU-accelerated transitions
+- Add `touch-action: manipulation` on interactive elements to remove 300ms tap delay on mobile
+
+---
+
+## Technical Summary
+
+| File | Change |
+|---|---|
+| `src/App.tsx` | Configure QueryClient with offline-first defaults; add cache persistence; add OfflineBanner |
+| `src/lib/queryPersister.ts` | New file -- localStorage cache persist/restore utility |
+| `src/components/OfflineBanner.tsx` | New file -- offline status indicator component |
+| `src/hooks/useSubscriptions.ts` | Remove per-query staleTime, add offlineFirst to mutations |
+| `src/hooks/useProfile.ts` | Remove per-query staleTime |
+| `src/pages/Index.tsx` | Add `decoding="async"` to logo images |
+| `src/pages/AddSubscription.tsx` | Add `decoding="async"` to logo images |
+| `src/index.css` | Add `touch-action: manipulation` and `will-change: transform` for smooth touch |
+| `index.html` | Verify font-display swap is active |
+
+No new dependencies required -- all features use built-in React Query capabilities and browser APIs.
