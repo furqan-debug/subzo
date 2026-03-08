@@ -8,21 +8,15 @@ describe('getLocalLogoUrl', () => {
     expect(url).toMatch(/^data:image\/svg\+xml,/);
   });
 
-  it('returns a data URI for Spotify', () => {
-    const url = getLocalLogoUrl('Spotify');
-    expect(url).not.toBeNull();
-    expect(url).toContain('data:image/svg+xml,');
-  });
-
   it('returns null for unknown services', () => {
     expect(getLocalLogoUrl('SomeRandomService')).toBeNull();
   });
 
   it('returns logos for all major mapped services', () => {
     const services = [
-      'Netflix', 'Spotify', 'YouTube Premium', 'Amazon Prime', 'Disney+',
-      'Apple Music', 'ChatGPT Plus', 'Claude Pro', 'GitHub', 'Figma',
-      'Notion', 'Slack', 'Zoom', 'Dropbox', 'NordVPN',
+      'Netflix', 'Spotify', 'YouTube Premium', 'Apple Music',
+      'Claude Pro', 'GitHub', 'Figma', 'Notion', 'Zoom',
+      'Dropbox', 'NordVPN', 'Twitch', 'Bitwarden', 'Stripe',
     ];
     for (const name of services) {
       const url = getLocalLogoUrl(name);
@@ -32,7 +26,13 @@ describe('getLocalLogoUrl', () => {
 
   it('includes brand color in the SVG', () => {
     const url = getLocalLogoUrl('Netflix');
-    // Netflix color is #E50914
     expect(url).toContain(encodeURIComponent('#E50914'));
+  });
+
+  it('services not in simple-icons fall back gracefully to null', () => {
+    // These services are NOT in simple-icons, so should return null
+    // The SubscriptionLogo component will fall back to DB logo_url or initials
+    expect(getLocalLogoUrl('Amazon Prime')).toBeNull();
+    expect(getLocalLogoUrl('Disney+')).toBeNull();
   });
 });
