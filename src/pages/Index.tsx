@@ -116,36 +116,29 @@ const Index = () => {
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         {/* ──── FREE TIER ──── */}
         {isFree && (
-          <div className="relative overflow-hidden rounded-2xl p-6 hero-spending-card border border-border/50">
-            <div className="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-muted-foreground/20 to-transparent" />
+          <div className="relative overflow-hidden rounded-2xl px-5 py-4 hero-spending-card border border-border/50">
+            <div className="absolute -top-16 -right-16 h-32 w-32 rounded-full bg-primary/8 blur-3xl" />
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-muted-foreground/15 to-transparent" />
             <div className="relative z-10">
-              <div className="mb-4">
-                {firstName ? (
-                  <p className="text-sm text-muted-foreground/70 font-medium">Hey, {firstName}</p>
-                ) : (
-                  <p className="text-[10px] text-muted-foreground font-medium tracking-[0.2em] uppercase">Monthly spending</p>
-                )}
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  {firstName && <p className="text-sm text-muted-foreground/70 font-medium">Hey, {firstName}</p>}
+                  <p className="text-[10px] text-muted-foreground/50 font-medium tracking-[0.15em] uppercase">{firstName ? 'Monthly spending' : 'Monthly spending'}</p>
+                </div>
               </div>
-              {firstName && (
-                <p className="text-[10px] text-muted-foreground/50 font-medium tracking-[0.2em] uppercase mb-1">Monthly spending</p>
-              )}
-              <p className="font-display text-5xl font-bold tracking-tight text-foreground/90">
+              <p className="font-display text-4xl font-bold tracking-tight text-foreground/90">
                 <AnimatedNumber value={monthlyTotal} prefix="$" />
               </p>
-              <p className="text-sm text-muted-foreground/60 mt-2">
-                {activeSubscriptions.length} active subscription{activeSubscriptions.length !== 1 ? 's' : ''}
-              </p>
-              <div className="mt-5 flex items-center gap-3">
-                <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium bg-secondary border border-border text-muted-foreground">
+              <div className="mt-3 flex items-center gap-2.5 flex-wrap">
+                <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium bg-secondary/80 border border-border/50 text-muted-foreground">
+                  {activeSubscriptions.length} active subscription{activeSubscriptions.length !== 1 ? 's' : ''}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium bg-secondary border border-border text-muted-foreground">
                   <TrendingUp className="h-3 w-3" />
                   ${(monthlyTotal * 12).toFixed(0)}/yr
                 </span>
-                <Link to="/analytics" className="inline-flex items-center gap-1 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors">
+                <Link to="/analytics" className="inline-flex items-center gap-1 text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors ml-auto">
                   View insights <ArrowUpRight className="h-3 w-3" />
-                </Link>
-                <Link to="/plans" className="ml-auto inline-flex items-center gap-1.5 text-xs text-primary/70 hover:text-primary transition-colors font-medium">
-                  <Crown className="h-3 w-3" /> Unlock Pro
                 </Link>
               </div>
             </div>
@@ -154,45 +147,31 @@ const Index = () => {
 
         {/* ──── PRO MONTHLY ──── */}
         {isPro && (
-          <div className="relative overflow-hidden rounded-2xl p-6 hero-card-pro pro-border-glow">
-            {/* Dual glow orbs */}
-            <div className="absolute -top-20 -right-20 h-48 w-48 rounded-full bg-primary/20 blur-3xl" />
-            <div className="absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-accent/15 blur-3xl" />
-            <div className="absolute top-1/2 -right-10 h-32 w-32 rounded-full bg-primary-glow/10 blur-3xl" />
+          <div className="relative overflow-hidden rounded-2xl px-5 py-4 hero-card-pro pro-border-glow">
+            <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-primary/15 blur-3xl" />
+            <div className="absolute -bottom-12 -left-12 h-32 w-32 rounded-full bg-accent/10 blur-3xl" />
 
             <div className="relative z-10">
-              <div className="mb-1 flex items-center gap-2.5">
-                {firstName ? (
-                  <p className="text-sm text-foreground/80 font-medium">Hey, {firstName}</p>
-                ) : (
-                  <p className="text-[10px] text-muted-foreground font-medium tracking-[0.2em] uppercase">Monthly spending</p>
-                )}
-                <span className="badge-pro badge-pro-pulse inline-flex items-center gap-1 rounded-full border border-primary/25 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
-                  <Crown className="h-3 w-3" />
-                  Pro
+              <div className="flex items-center gap-2 mb-0.5">
+                {firstName && <p className="text-sm text-foreground/80 font-medium">Hey, {firstName}</p>}
+                <span className="badge-pro badge-pro-pulse inline-flex items-center gap-1 rounded-full border border-primary/25 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary">
+                  <Crown className="h-2.5 w-2.5" /> Pro
                 </span>
               </div>
-
-              {/* Gradient divider */}
-              <div className="pro-divider my-3" />
-
-              {firstName && (
-                <p className="text-[10px] text-muted-foreground/60 font-medium tracking-[0.2em] uppercase mb-1">Monthly spending</p>
-              )}
-              <p className="font-display text-5xl font-bold tracking-tight text-gradient">
+              <div className="pro-divider my-2" />
+              <p className="text-[10px] text-muted-foreground/50 font-medium tracking-[0.15em] uppercase mb-0.5">Monthly spending</p>
+              <p className="font-display text-4xl font-bold tracking-tight text-gradient">
                 <AnimatedNumber value={monthlyTotal} prefix="$" />
               </p>
-
-              <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-1 text-xs font-medium text-primary/90">
-                {activeSubscriptions.length} active subscription{activeSubscriptions.length !== 1 ? 's' : ''}
-              </div>
-
-              <div className="mt-5 flex items-center gap-3">
-                <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium bg-primary/10 border border-primary/20 text-primary glow-primary">
+              <div className="mt-3 flex items-center gap-2.5 flex-wrap">
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/8 border border-primary/15 px-2.5 py-1 text-[11px] font-medium text-primary/80">
+                  {activeSubscriptions.length} active subscription{activeSubscriptions.length !== 1 ? 's' : ''}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium bg-primary/8 border border-primary/15 text-primary glow-primary">
                   <TrendingUp className="h-3 w-3" />
                   ${(monthlyTotal * 12).toFixed(0)}/yr
                 </span>
-                <Link to="/analytics" className="inline-flex items-center gap-1 text-xs text-accent/80 hover:text-accent transition-colors">
+                <Link to="/analytics" className="inline-flex items-center gap-1 text-[11px] text-accent/70 hover:text-accent transition-colors ml-auto">
                   View insights <ArrowUpRight className="h-3 w-3" />
                 </Link>
               </div>
@@ -202,53 +181,38 @@ const Index = () => {
 
         {/* ──── PRO ELITE (ANNUAL) ──── */}
         {isElite && (
-          <div className="relative overflow-hidden rounded-2xl p-6 hero-card-elite border border-[hsl(45,80%,55%)]/20">
-            {/* Triple glow orbs */}
-            <div className="absolute -top-20 -right-20 h-52 w-52 rounded-full bg-primary/25 blur-3xl" />
-            <div className="absolute -bottom-16 -left-16 h-44 w-44 rounded-full bg-accent/20 blur-3xl" />
-            <div className="absolute top-1/3 right-1/4 h-32 w-32 rounded-full blur-3xl" style={{ background: 'hsl(45 80% 55% / 0.07)' }} />
+          <div className="relative overflow-hidden rounded-2xl px-5 py-4 hero-card-elite border border-[hsl(45,80%,55%)]/15">
+            <div className="absolute -top-16 -right-16 h-44 w-44 rounded-full bg-primary/20 blur-3xl" />
+            <div className="absolute -bottom-12 -left-12 h-36 w-36 rounded-full bg-accent/15 blur-3xl" />
 
             {/* Floating gold particles */}
             <div className="elite-particle elite-particle-1" />
             <div className="elite-particle elite-particle-2" />
             <div className="elite-particle elite-particle-3" />
 
-            {/* Corner accent */}
-            <div className="elite-corner-accent" />
-
             <div className="relative z-10">
-              <div className="mb-0.5 flex items-center gap-2.5">
-                {firstName ? (
-                  <p className="text-sm font-semibold text-foreground/90">Hey, {firstName}</p>
-                ) : (
-                  <p className="text-[10px] font-medium tracking-[0.2em] uppercase" style={{ color: 'hsl(45 80% 65%)' }}>Monthly spending</p>
-                )}
-                <span className="badge-elite badge-elite-glow inline-flex items-center gap-1 rounded-full border border-[hsl(45,80%,55%)]/25 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider" style={{ color: 'hsl(45 80% 65%)' }}>
-                  <Star className="h-3 w-3 fill-current" />
-                  Elite
+              <div className="flex items-center gap-2 mb-0.5">
+                {firstName && <p className="text-sm font-semibold text-foreground/90">Hey, {firstName}</p>}
+                <span className="badge-elite badge-elite-glow inline-flex items-center gap-1 rounded-full border border-[hsl(45,80%,55%)]/25 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider" style={{ color: 'hsl(45 80% 65%)' }}>
+                  <Star className="h-2.5 w-2.5 fill-current" /> Elite
                 </span>
               </div>
-
               {firstName && (
-                <p className="text-[10px] font-medium tracking-wide mb-3" style={{ color: 'hsl(45 80% 55% / 0.45)' }}>Premium Member</p>
+                <p className="text-[10px] font-medium tracking-wide mb-2" style={{ color: 'hsl(45 80% 55% / 0.4)' }}>Premium Member</p>
               )}
-
-              {!firstName && <div className="mb-3" />}
-
-              <p className="font-display text-5xl font-bold tracking-tight text-gradient-gold">
+              {!firstName && <div className="mb-2" />}
+              <p className="font-display text-4xl font-bold tracking-tight text-gradient-gold">
                 <AnimatedNumber value={monthlyTotal} prefix="$" />
               </p>
-
-              <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium" style={{ borderColor: 'hsl(45 80% 55% / 0.15)', color: 'hsl(45 80% 60%)', background: 'hsl(45 80% 55% / 0.06)' }}>
-                {activeSubscriptions.length} active subscription{activeSubscriptions.length !== 1 ? 's' : ''}
-              </div>
-
-              <div className="mt-5 flex items-center gap-3">
-                <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border" style={{ borderColor: 'hsl(45 80% 55% / 0.2)', color: 'hsl(45 80% 65%)', background: 'hsl(45 80% 55% / 0.08)', boxShadow: '0 0 16px -4px hsl(45 80% 55% / 0.2)' }}>
+              <div className="mt-3 flex items-center gap-2.5 flex-wrap">
+                <span className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium" style={{ borderColor: 'hsl(45 80% 55% / 0.12)', color: 'hsl(45 80% 60%)', background: 'hsl(45 80% 55% / 0.05)' }}>
+                  {activeSubscriptions.length} active subscription{activeSubscriptions.length !== 1 ? 's' : ''}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium border" style={{ borderColor: 'hsl(45 80% 55% / 0.15)', color: 'hsl(45 80% 65%)', background: 'hsl(45 80% 55% / 0.06)', boxShadow: '0 0 12px -4px hsl(45 80% 55% / 0.15)' }}>
                   <TrendingUp className="h-3 w-3" />
                   ${(monthlyTotal * 12).toFixed(0)}/yr
                 </span>
-                <Link to="/analytics" className="inline-flex items-center gap-1 text-xs transition-colors" style={{ color: 'hsl(45 80% 65% / 0.7)' }}>
+                <Link to="/analytics" className="inline-flex items-center gap-1 text-[11px] transition-colors ml-auto" style={{ color: 'hsl(45 80% 65% / 0.6)' }}>
                   View insights <ArrowUpRight className="h-3 w-3" />
                 </Link>
               </div>
