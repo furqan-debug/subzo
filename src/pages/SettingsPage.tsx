@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
-import { LogOut, User, Bell, Globe, Crown, Loader2, Sparkles, ChevronRight, Trash2, Info, Download, Lock } from 'lucide-react';
+import { LogOut, User, Bell, Globe, Crown, Loader2, Sparkles, ChevronRight, Trash2, Info, Download, Lock, FileText } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useSubscriptions } from '@/hooks/useSubscriptions';
 import { scheduleRenewalNotifications } from '@/hooks/useNotifications';
