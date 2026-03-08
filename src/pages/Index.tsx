@@ -19,9 +19,23 @@ const Index = () => {
   const { data: subscriptions, isLoading } = useSubscriptions();
   const deleteMutation = useDeleteSubscription();
   const { subscriptionPlan } = useProfile();
+  const { user } = useAuth();
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const subLimit = getSubscriptionLimit(subscriptionPlan);
   const isAtLimit = (subscriptions?.filter(s => s.status === 'active').length ?? 0) >= subLimit;
+
+  // Extract first name
+  const firstName = useMemo(() => {
+    const fullName = user?.user_metadata?.full_name || user?.user_metadata?.name;
+    if (fullName) return fullName.split(' ')[0];
+    if (user?.email) return user.email.split('@')[0];
+    return null;
+  }, [user]);
+
+  // Tier helpers
+  const isPro = subscriptionPlan === 'monthly';
+  const isElite = subscriptionPlan === 'annual';
+  const isFree = !isPro && !isElite;
 
   const activeSubscriptions = useMemo(
     () => subscriptions?.filter((s) => s.status === 'active') ?? [],
