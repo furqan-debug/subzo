@@ -1,54 +1,92 @@
 
+# Make the App Smooth, Fast, and Offline-Ready
 
-# Settings Page Design Overhaul
+This plan focuses on three pillars: **performance**, **smoothness**, and **offline resilience** -- all achievable within the current React + Capacitor + Supabase stack.
 
-## Current Issues
-- Flat, uniform glass-card sections with no visual hierarchy
-- Profile card is basic — no plan badge or visual flair
-- Preferences section cramped with Save button awkwardly inside
-- Plan section has tiny feature chips that feel cluttered
-- Sign out button floats at the bottom with no context
-- No section headers to organize the page
-- Missing account management options (delete account, app version)
+---
 
-## Proposed Design
+## 1. Offline Data Caching with React Query
 
-### Structure (top to bottom)
+React Query supports an "offline-first" mode out of the box. We'll configure it so users can browse their subscriptions even without internet.
 
-**1. Profile Hero Section**
-- Larger avatar (18x18) with gradient ring matching plan status
-- Name + email prominently displayed
-- Plan badge inline with name (e.g., "Pro" pill or "Free" pill)
-- Member since date in muted text
+### Changes to `src/App.tsx`:
+- Configure the global `QueryClient` with offline-friendly defaults:
+  - `gcTime: Infinity` -- keep cached data in memory permanently (until app restart)
+  - `staleTime: 5 * 60 * 1000` (5 minutes) -- reduce unnecessary refetches
+  - `retry: 2` with `retryDelay` for graceful network retries
+  - `networkMode: 'offlineFirst'` -- serve cache instantly, then sync in background
 
-**2. Subscription Plan Card** (elevated, visually distinct)
-- If Free: amber/warning-tinted card with upgrade CTA and brief "You're missing out on..." line
-- If Pro: success-tinted card showing plan name, renewal info, and a row of unlocked feature icons
-- "Change Plan" / "Upgrade to Pro" button
+### Changes to `src/hooks/useSubscriptions.ts` and `src/hooks/useProfile.ts`:
+- Remove per-query `staleTime` overrides (global default takes over)
+- Add `networkMode: 'offlineFirst'` to mutations so they queue when offline
 
-**3. Preferences Section** (clean grouped list)
-- Section header: "Preferences"
-- Each setting as a row: icon + label on left, select on right (horizontal layout, not stacked)
-- Currency row
-- Reminder days row
-- Save button below, only enabled when values changed
+---
 
-**4. Account Section**
-- Section header: "Account"
-- Sign out row styled as a list item (not a full-width destructive button)
-- Delete account row (navigates or opens confirmation) — required by Google Play policy
-- App version text at bottom in muted
+## 2. Persist Cache Across Sessions
 
-## Files to Modify
+### New utility: `src/lib/queryPersister.ts`
+- Create a lightweight localStorage-based persister that saves/restores the React Query cache
+- On app load, hydrate from localStorage; on cache updates, debounce-write to localStorage
+- This means even after closing and reopening the app, the last-known data is shown instantly
 
-| File | Changes |
-|------|---------|
-| `src/pages/SettingsPage.tsx` | Full redesign of layout, sections, visual hierarchy |
+### Changes to `src/App.tsx`:
+- Wrap the app with `PersistQueryClientProvider` from `@tanstack/react-query-persist-client` (already included with `@tanstack/react-query`)
+- Or implement a simpler manual approach: subscribe to query cache changes and persist to localStorage, then restore on init
 
-## Key Design Decisions
-- Use the existing `glass-card` class but vary border colors per section (primary tint for plan, default for preferences)
-- Horizontal setting rows instead of stacked label + select
-- Track dirty state for Save button (only show when changed)
-- Add delete account option (shows confirmation dialog, calls Supabase `auth.admin.deleteUser` or equivalent)
-- Keep the premium fintech aesthetic — no neon, subtle gradients
+Given the dependency constraints (no new packages), we'll use a manual approach:
+- `queryClient.getQueryCache().subscribe()` to listen for changes
+- Debounce writes to `localStorage` 
+- On startup, call `queryClient.setQueryData()` for each stored key
 
+---
+
+## 3. Offline Status Indicator
+
+### New component: `src/components/OfflineBanner.tsx`
+- A small, animated banner that slides in at the top when `navigator.onLine` is false
+- Shows "You're offline -- showing cached data" with a subtle warning color
+- Auto-dismisses when back online with a brief "Back online" confirmation
+- Uses `online`/`offline` window events
+
+### Changes to `src/App.tsx`:
+- Add `<OfflineBanner />` inside the app tree
+
+---
+
+## 4. Performance Optimizations
+
+### Reduce animation overhead:
+- **`src/pages/Index.tsx`**: Remove staggered `delay` on subscription list items (already lean). Ensure `motion.div` uses `layout` prop sparingly
+- **`src/components/PageTransition.tsx`**: Keep the current 100ms transition (already fast)
+
+### Optimize images:
+- **`src/pages/AddSubscription.tsx`** and **`src/pages/Index.tsx`**: Add `loading="lazy"` and `decoding="async"` to all `<img>` tags for subscription logos (some already have `loading="lazy"`)
+
+### Font loading:
+- **`index.html`**: Add `font-display: swap` to the Google Fonts URL to prevent FOIT (flash of invisible text). Change the URL from `display=swap` (already present -- confirm it's working)
+
+---
+
+## 5. Smooth Touch Interactions
+
+### Changes to `src/index.css`:
+- Add `will-change: transform` to `.glass-card` for GPU-accelerated transitions
+- Add `touch-action: manipulation` on interactive elements to remove 300ms tap delay on mobile
+
+---
+
+## Technical Summary
+
+| File | Change |
+|---|---|
+| `src/App.tsx` | Configure QueryClient with offline-first defaults; add cache persistence; add OfflineBanner |
+| `src/lib/queryPersister.ts` | New file -- localStorage cache persist/restore utility |
+| `src/components/OfflineBanner.tsx` | New file -- offline status indicator component |
+| `src/hooks/useSubscriptions.ts` | Remove per-query staleTime, add offlineFirst to mutations |
+| `src/hooks/useProfile.ts` | Remove per-query staleTime |
+| `src/pages/Index.tsx` | Add `decoding="async"` to logo images |
+| `src/pages/AddSubscription.tsx` | Add `decoding="async"` to logo images |
+| `src/index.css` | Add `touch-action: manipulation` and `will-change: transform` for smooth touch |
+| `index.html` | Verify font-display swap is active |
+
+No new dependencies required -- all features use built-in React Query capabilities and browser APIs.
