@@ -9,6 +9,8 @@ import { useProfile } from '@/hooks/useProfile';
 import { useSubscriptions } from '@/hooks/useSubscriptions';
 import { scheduleRenewalNotifications } from '@/hooks/useNotifications';
 import { SettingsSkeleton } from '@/components/SkeletonLoaders';
+import { canAccess } from '@/lib/planFeatures';
+import FeatureGate from '@/components/FeatureGate';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import {
