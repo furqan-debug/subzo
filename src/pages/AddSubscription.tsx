@@ -1,18 +1,20 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { format, addMonths, addWeeks, addYears } from 'date-fns';
-import { useCatalog, useAddSubscription, type CatalogItem } from '@/hooks/useSubscriptions';
+import { useCatalog, useAddSubscription, useSubscriptions, type CatalogItem } from '@/hooks/useSubscriptions';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
-import { Search, ArrowLeft, Loader2, PenLine, Sparkles, ChevronDown } from 'lucide-react';
+import { Search, ArrowLeft, Loader2, PenLine, Sparkles, ChevronDown, Lock, Crown } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { playAddCelebration } from '@/lib/celebrations';
+import { useProfile } from '@/hooks/useProfile';
+import { getSubscriptionLimit, FREE_SUBSCRIPTION_LIMIT } from '@/lib/planFeatures';
 
 const categories = ['Entertainment', 'Music', 'Productivity', 'Cloud', 'Fitness', 'Health', 'Security', 'Education', 'News', 'Gaming', 'Shopping', 'Professional', 'Other'];
 
