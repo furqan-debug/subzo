@@ -147,11 +147,7 @@ const CalendarContent = () => {
                     <Card className="glass-card hover:border-primary/30 transition-all">
                       <CardContent className="flex items-center gap-3 p-3 relative z-10">
                         <div className="icon-premium h-10 w-10 shrink-0">
-                          {sub.logo_url ? (
-                            <img src={sub.logo_url} alt="" className="h-6 w-6 object-contain" />
-                          ) : (
-                            <span className="text-sm font-semibold text-muted-foreground">{sub.name?.[0] ?? '?'}</span>
-                          )}
+                          <SubscriptionLogo name={sub.name} logoUrl={sub.logo_url} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{sub.name}</p>

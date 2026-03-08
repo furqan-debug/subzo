@@ -69,11 +69,7 @@ const SubscriptionDetail = () => {
         <div className="glass-card p-5">
           <div className="flex items-center gap-4 relative z-10">
             <div className="icon-premium h-16 w-16 shrink-0">
-              {sub.logo_url ? (
-                <img src={sub.logo_url} alt="" className="h-9 w-9 object-contain" />
-              ) : (
-                <span className="text-2xl font-bold text-muted-foreground">{sub.name?.[0] ?? '?'}</span>
-              )}
+              <SubscriptionLogo name={sub.name} logoUrl={sub.logo_url} size="lg" />
             </div>
             <div>
               <h1 className="font-display text-2xl font-bold">{sub.name}</h1>
