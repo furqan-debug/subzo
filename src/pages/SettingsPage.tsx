@@ -286,9 +286,15 @@ const SettingsPage = () => {
             <div className="flex items-center gap-3">
               <Bell className="h-4 w-4 text-warning" />
               <span className="text-sm font-medium text-foreground">Reminder before renewal</span>
+              {!canReminders && (
+                <Badge className="text-[9px] px-1.5 py-0 bg-primary/10 text-primary border-primary/20">
+                  <Lock className="h-2.5 w-2.5 mr-0.5" />
+                  Pro
+                </Badge>
+              )}
             </div>
-            <Select value={reminderDays} onValueChange={setReminderDays}>
-              <SelectTrigger className="w-24 h-8 text-xs bg-secondary/30 border-border/50">
+            <Select value={reminderDays} onValueChange={setReminderDays} disabled={!canReminders}>
+              <SelectTrigger className={`w-24 h-8 text-xs bg-secondary/30 border-border/50 ${!canReminders ? 'opacity-50 cursor-not-allowed' : ''}`}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
