@@ -188,19 +188,8 @@ const AddSubscription = () => {
                       onClick={() => handleCatalogSelect(item)}
                     >
                       <CardContent className="flex items-center gap-3 p-3 relative z-10">
-                        <div className="icon-premium h-10 w-10 shrink-0 group-hover:shadow-[0_0_12px_-2px_hsl(var(--primary)/0.3)] transition-shadow duration-300">
-                          {logoSrc ? (
-                            <img
-                              src={logoSrc}
-                              alt={`${item.name} logo`}
-                              className="h-5 w-5 object-contain"
-                              loading="lazy"
-                              decoding="async"
-                              onError={() => handleLogoError(item)}
-                            />
-                          ) : (
-                            <span className="text-xs font-bold text-muted-foreground">{item.name?.[0] ?? '?'}</span>
-                          )}
+                      <div className="icon-premium h-10 w-10 shrink-0 group-hover:shadow-[0_0_12px_-2px_hsl(var(--primary)/0.3)] transition-shadow duration-300">
+                          <SubscriptionLogo name={item.name} logoUrl={item.logo_url} size="sm" />
                         </div>
                         <div className="min-w-0">
                           <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{item.name}</p>
