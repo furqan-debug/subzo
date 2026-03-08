@@ -161,15 +161,9 @@ const SettingsPage = () => {
             <div className="space-y-1 pt-1">
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Unlocked features</p>
               <div className="flex flex-wrap gap-1.5">
-                {['Unlimited subs', 'Smart reminders', 'Full analytics', 'Calendar'].map((f) => (
+                {['Unlimited subs', 'Smart reminders', 'Full analytics', 'Calendar', 'CSV Export', '⭐ Priority Support'].map((f) => (
                   <span key={f} className="rounded-full bg-success/10 border border-success/20 px-2 py-0.5 text-[10px] font-medium text-success">{f}</span>
                 ))}
-                {canAccess(subscriptionPlan, 'export_csv') && (
-                  <span className="rounded-full bg-success/10 border border-success/20 px-2 py-0.5 text-[10px] font-medium text-success">CSV Export</span>
-                )}
-                {canAccess(subscriptionPlan, 'custom_categories') && (
-                  <span className="rounded-full bg-success/10 border border-success/20 px-2 py-0.5 text-[10px] font-medium text-success">Custom Categories</span>
-                )}
               </div>
             </div>
           )}
