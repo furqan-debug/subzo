@@ -7,8 +7,21 @@ import { useSubscriptions, Subscription } from '@/hooks/useSubscriptions';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { CalendarDays } from 'lucide-react';
+import FeatureGate from '@/components/FeatureGate';
 
 const CalendarPage = () => {
+  return (
+    <FeatureGate
+      feature="calendar_view"
+      title="Calendar View"
+      description="Upgrade to any paid plan to see when your subscriptions renew on a calendar."
+    >
+      <CalendarContent />
+    </FeatureGate>
+  );
+};
+
+const CalendarContent = () => {
   const { data: subscriptions } = useSubscriptions();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [month, setMonth] = useState(new Date());
@@ -18,11 +31,10 @@ const CalendarPage = () => {
     [subscriptions]
   );
 
-  // Map of YYYY-MM-DD -> subscriptions
   const renewalMap = useMemo(() => {
     const map = new Map<string, Subscription[]>();
     activeSubscriptions.forEach((sub) => {
-      const key = sub.next_renewal.slice(0, 10); // YYYY-MM-DD
+      const key = sub.next_renewal.slice(0, 10);
       const list = map.get(key) ?? [];
       list.push(sub);
       map.set(key, list);
@@ -33,7 +45,6 @@ const CalendarPage = () => {
   const selectedKey = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null;
   const selectedSubs = selectedKey ? renewalMap.get(selectedKey) ?? [] : [];
 
-  // Days that have renewals (for modifiers)
   const renewalDays = useMemo(
     () => Array.from(renewalMap.keys()).map((k) => parseISO(k)),
     [renewalMap]
@@ -42,7 +53,6 @@ const CalendarPage = () => {
   function CustomDayContent(props: DayContentProps) {
     const key = format(props.date, 'yyyy-MM-dd');
     const subs = renewalMap.get(key);
-
     return (
       <div className="relative flex flex-col items-center">
         <span>{props.date.getDate()}</span>
@@ -121,7 +131,6 @@ const CalendarPage = () => {
         </div>
       </motion.div>
 
-      {/* Selected day details */}
       {selectedDate && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
           <h2 className="font-display text-base font-semibold mb-2">
