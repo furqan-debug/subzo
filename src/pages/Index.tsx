@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import SubscriptionLogo from '@/components/SubscriptionLogo';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { format, differenceInDays, parseISO } from 'date-fns';
