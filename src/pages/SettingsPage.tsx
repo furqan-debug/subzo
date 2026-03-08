@@ -17,9 +17,8 @@ import { Badge } from '@/components/ui/badge';
 const currencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'INR', 'JPY'];
 
 const planLabels: Record<string, string> = {
-  monthly: 'Monthly — $0.99/mo',
-  '6month': '6-Month — $4.99/6mo',
-  annual: 'Annual — $8.99/yr',
+  monthly: 'Pro Monthly — $1.99/mo',
+  annual: 'Pro Annual — $14.99/yr',
 };
 
 const SettingsPage = () => {

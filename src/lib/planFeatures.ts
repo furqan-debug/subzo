@@ -1,4 +1,4 @@
-export type PlanId = 'monthly' | '6month' | 'annual';
+export type PlanId = 'monthly' | 'annual';
 
 export type Feature =
   | 'unlimited_subscriptions'
@@ -6,22 +6,18 @@ export type Feature =
   | 'full_analytics'
   | 'calendar_view'
   | 'export_csv'
-  | 'custom_categories'
-  | 'priority_support'
-  | 'early_access';
+  | 'priority_support';
 
 const FEATURE_ACCESS: Record<Feature, PlanId[]> = {
-  unlimited_subscriptions: ['monthly', '6month', 'annual'],
-  smart_reminders: ['monthly', '6month', 'annual'],
-  full_analytics: ['monthly', '6month', 'annual'],
-  calendar_view: ['monthly', '6month', 'annual'],
-  export_csv: ['6month', 'annual'],
-  custom_categories: ['annual'],
-  priority_support: ['6month', 'annual'],
-  early_access: ['annual'],
+  unlimited_subscriptions: ['monthly', 'annual'],
+  smart_reminders: ['monthly', 'annual'],
+  full_analytics: ['monthly', 'annual'],
+  calendar_view: ['monthly', 'annual'],
+  export_csv: ['monthly', 'annual'],
+  priority_support: ['monthly', 'annual'],
 };
 
-export const FREE_SUBSCRIPTION_LIMIT = 3;
+export const FREE_SUBSCRIPTION_LIMIT = 2;
 
 export function canAccess(plan: string | null | undefined, feature: Feature): boolean {
   if (!plan) return false;
@@ -35,15 +31,13 @@ export function getSubscriptionLimit(plan: string | null | undefined): number {
 
 export function getPlanBadges(plan: string | null | undefined): { label: string; color: string }[] {
   const badges: { label: string; color: string }[] = [];
-  if (canAccess(plan, 'priority_support')) badges.push({ label: 'Priority Support', color: 'primary' });
-  if (canAccess(plan, 'early_access')) badges.push({ label: 'Early Access', color: 'accent' });
+  if (canAccess(plan, 'priority_support')) badges.push({ label: '⭐ Priority Support', color: 'primary' });
   return badges;
 }
 
 export function getPlanTier(plan: string | null | undefined): number {
   if (!plan) return 0;
   if (plan === 'monthly') return 1;
-  if (plan === '6month') return 2;
-  if (plan === 'annual') return 3;
+  if (plan === 'annual') return 2;
   return 0;
 }
