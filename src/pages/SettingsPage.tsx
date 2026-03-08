@@ -4,11 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
-import { LogOut, User, Bell, Globe, Crown, Loader2, Sparkles, ChevronRight, Trash2, Info } from 'lucide-react';
+import { LogOut, User, Bell, Globe, Crown, Loader2, Sparkles, ChevronRight, Trash2, Info, Download, Lock } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useSubscriptions } from '@/hooks/useSubscriptions';
 import { scheduleRenewalNotifications } from '@/hooks/useNotifications';
 import { SettingsSkeleton } from '@/components/SkeletonLoaders';
+import { canAccess } from '@/lib/planFeatures';
+import FeatureGate from '@/components/FeatureGate';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -105,7 +107,33 @@ const SettingsPage = () => {
   };
 
   const isPro = !!subscriptionPlan;
+  const canReminders = canAccess(subscriptionPlan, 'smart_reminders');
   const memberSince = user?.created_at ? format(new Date(user.created_at), 'MMMM yyyy') : null;
+
+  const handleExportCSV = () => {
+    if (!subscriptions?.length) {
+      toast({ title: 'No data', description: 'You have no subscriptions to export.' });
+      return;
+    }
+    const headers = ['Name', 'Amount', 'Billing Cycle', 'Category', 'Status', 'Next Renewal'];
+    const rows = subscriptions.map((s) => [
+      s.name,
+      s.amount,
+      s.billing_cycle,
+      s.category,
+      s.status,
+      s.next_renewal,
+    ]);
+    const csv = [headers, ...rows].map((r) => r.map((v) => `"${v}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `subscriptions-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: 'Exported!', description: `${subscriptions.length} subscriptions exported.` });
+  };
 
   if (loading) return <SettingsSkeleton />;
 
@@ -258,9 +286,15 @@ const SettingsPage = () => {
             <div className="flex items-center gap-3">
               <Bell className="h-4 w-4 text-warning" />
               <span className="text-sm font-medium text-foreground">Reminder before renewal</span>
+              {!canReminders && (
+                <Badge className="text-[9px] px-1.5 py-0 bg-primary/10 text-primary border-primary/20">
+                  <Lock className="h-2.5 w-2.5 mr-0.5" />
+                  Pro
+                </Badge>
+              )}
             </div>
-            <Select value={reminderDays} onValueChange={setReminderDays}>
-              <SelectTrigger className="w-24 h-8 text-xs bg-secondary/30 border-border/50">
+            <Select value={reminderDays} onValueChange={setReminderDays} disabled={!canReminders}>
+              <SelectTrigger className={`w-24 h-8 text-xs bg-secondary/30 border-border/50 ${!canReminders ? 'opacity-50 cursor-not-allowed' : ''}`}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -286,7 +320,31 @@ const SettingsPage = () => {
         )}
       </div>
 
-      {/* ─── Account ─── */}
+      {/* ─── Data ─── */}
+      <div>
+        <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-3 px-1">
+          Data
+        </p>
+        <FeatureGate feature="export_csv" blur title="Export your data" description="CSV export is available on Pro plans.">
+          <div className="glass-card overflow-hidden">
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center justify-between w-full px-5 py-4 text-left hover:bg-secondary/30 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Download className="h-4 w-4 text-accent" />
+                <div>
+                  <span className="text-sm font-medium text-foreground">Export CSV</span>
+                  <p className="text-xs text-muted-foreground">Download all subscriptions as a spreadsheet</p>
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
+            </button>
+          </div>
+        </FeatureGate>
+      </div>
+
+
       <div>
         <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium mb-3 px-1">
           Account
