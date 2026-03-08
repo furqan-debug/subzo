@@ -10,6 +10,7 @@ import { ArrowLeft, ExternalLink, Trash2, XCircle, DollarSign, CalendarDays, Tag
 import { differenceInDays } from 'date-fns';
 import { playDeleteFeedback } from '@/lib/celebrations';
 import { DetailSkeleton } from '@/components/SkeletonLoaders';
+import SubscriptionLogo from '@/components/SubscriptionLogo';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
