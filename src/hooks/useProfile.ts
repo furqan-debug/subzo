@@ -20,7 +20,7 @@ export const useProfile = () => {
     enabled: !!user,
   });
 
-  const selectPlan = async (plan: 'monthly' | '6month' | 'annual') => {
+  const selectPlan = async (plan: 'monthly' | 'annual') => {
     if (!user) return;
     const { error } = await supabase
       .from('profiles')
