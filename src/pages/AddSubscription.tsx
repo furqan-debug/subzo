@@ -15,6 +15,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { playAddCelebration } from '@/lib/celebrations';
 import { useProfile } from '@/hooks/useProfile';
 import { getSubscriptionLimit, FREE_SUBSCRIPTION_LIMIT } from '@/lib/planFeatures';
+import SubscriptionLogo from '@/components/SubscriptionLogo';
 
 const categories = ['Entertainment', 'Music', 'Productivity', 'Cloud', 'Fitness', 'Health', 'Security', 'Education', 'News', 'Gaming', 'Shopping', 'Professional', 'Other'];
 
@@ -42,28 +43,6 @@ const AddSubscription = () => {
   const [discountPercentage, setDiscountPercentage] = useState('');
   const [discountEndDate, setDiscountEndDate] = useState('');
 
-  const [logoFallbackStep, setLogoFallbackStep] = useState<Record<string, number>>({});
-
-  const getWebsiteFavicon = (websiteUrl: string | null) => {
-    if (!websiteUrl) return null;
-    try {
-      const domain = new URL(websiteUrl).hostname;
-      return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-    } catch {
-      return null;
-    }
-  };
-
-  const getLogoSrc = (item: CatalogItem) => {
-    const step = logoFallbackStep[item.id] ?? 0;
-    if (step === 0) return item.logo_url;
-    if (step === 1) return getWebsiteFavicon(item.website_url);
-    return null;
-  };
-
-  const handleLogoError = (item: CatalogItem) => {
-    setLogoFallbackStep((prev) => ({ ...prev, [item.id]: (prev[item.id] ?? 0) + 1 }));
-  };
 
   const getNextRenewal = (start: string, billing: string) => {
     const d = new Date(start);
@@ -199,7 +178,6 @@ const AddSubscription = () => {
           ) : (
             <div className="grid grid-cols-2 gap-2.5">
               {catalog?.map((item, i) => {
-                const logoSrc = getLogoSrc(item);
                 return (
                   <div
                     key={item.id}
@@ -209,19 +187,8 @@ const AddSubscription = () => {
                       onClick={() => handleCatalogSelect(item)}
                     >
                       <CardContent className="flex items-center gap-3 p-3 relative z-10">
-                        <div className="icon-premium h-10 w-10 shrink-0 group-hover:shadow-[0_0_12px_-2px_hsl(var(--primary)/0.3)] transition-shadow duration-300">
-                          {logoSrc ? (
-                            <img
-                              src={logoSrc}
-                              alt={`${item.name} logo`}
-                              className="h-5 w-5 object-contain"
-                              loading="lazy"
-                              decoding="async"
-                              onError={() => handleLogoError(item)}
-                            />
-                          ) : (
-                            <span className="text-xs font-bold text-muted-foreground">{item.name?.[0] ?? '?'}</span>
-                          )}
+                      <div className="icon-premium h-10 w-10 shrink-0 group-hover:shadow-[0_0_12px_-2px_hsl(var(--primary)/0.3)] transition-shadow duration-300">
+                          <SubscriptionLogo name={item.name} logoUrl={item.logo_url} size="sm" />
                         </div>
                         <div className="min-w-0">
                           <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">{item.name}</p>
