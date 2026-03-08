@@ -36,7 +36,7 @@ const plans = [
     features: [
       { text: 'Everything in Monthly', icon: Check },
       { text: 'Export data as CSV', icon: Download },
-      { text: 'Priority support', icon: Shield },
+      { text: 'Priority Support', icon: Shield },
     ],
   },
   {
