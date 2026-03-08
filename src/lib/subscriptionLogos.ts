@@ -81,10 +81,16 @@ const LOGO_MAP: Record<string, { slug: string; color: string }> = {
 const cache = new Map<string, string>();
 
 function buildCache() {
-  const icons = simpleIcons as Record<string, { svg?: string }>;
+  const icons = simpleIcons as Record<string, { svg?: string; slug?: string }>;
+  // Build a lookup by slug for reliable matching
+  const bySlug = new Map<string, { svg: string }>();
+  for (const val of Object.values(icons)) {
+    if (val && typeof val === 'object' && 'slug' in val && 'svg' in val && val.svg) {
+      bySlug.set(val.slug as string, val as { svg: string });
+    }
+  }
   for (const [name, entry] of Object.entries(LOGO_MAP)) {
-    const key = `si${entry.slug.charAt(0).toUpperCase()}${entry.slug.slice(1)}`;
-    const icon = icons[key];
+    const icon = bySlug.get(entry.slug);
     if (!icon?.svg) continue;
     const coloredSvg = icon.svg.replace('<svg', `<svg fill="${entry.color}"`);
     cache.set(name, `data:image/svg+xml,${encodeURIComponent(coloredSvg)}`);
