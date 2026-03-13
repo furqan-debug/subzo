@@ -56,13 +56,17 @@ async function signInNative(): Promise<{ error: { message: string } | null }> {
     return { error: null };
   } catch (err: any) {
     const message = err?.message || '';
-    console.error('Native Google sign-in error:', JSON.stringify(err, null, 2));
+    const errorCode = err?.code || err?.result?.code || '';
+    console.error('=== GOOGLE SIGN-IN DEBUG ===');
+    console.error('Full error object:', JSON.stringify(err, null, 2));
+    console.error('Error code:', errorCode);
+    console.error('Error message:', message);
+    console.error('===========================');
 
-    // "cancelled/canceled" is returned both for genuine user cancellation
-    // and for SHA-1/client ID mismatches — suppress silently either way
-    const isCancelled = /cancel/i.test(message);
-    if (isCancelled) {
-      return { error: null };
+    // Genuine user cancellation (pressed back before selecting account)
+    if (/cancel/i.test(message)) {
+      // Log it but show a helpful message — this often indicates SHA-1/config issues
+      return { error: { message: 'Google sign-in was interrupted. If this keeps happening, the app may need a configuration update.' } };
     }
 
     return { error: { message: message || 'Google sign-in failed on native device' } };
