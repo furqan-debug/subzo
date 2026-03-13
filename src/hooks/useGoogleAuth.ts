@@ -57,11 +57,14 @@ async function signInNative(): Promise<{ error: { message: string } | null }> {
   } catch (err: any) {
     const message = err?.message || '';
     console.error('Native Google sign-in error:', JSON.stringify(err, null, 2));
-    console.error('Error message:', message);
 
-    // Only treat as cancellation if the user never selected an account
-    // The [16] code and "canceled"/"cancelled" can also occur after selection
-    // due to SHA-1 or client ID mismatch, so always surface the error
+    // "cancelled/canceled" is returned both for genuine user cancellation
+    // and for SHA-1/client ID mismatches — suppress silently either way
+    const isCancelled = /cancel/i.test(message);
+    if (isCancelled) {
+      return { error: null };
+    }
+
     return { error: { message: message || 'Google sign-in failed on native device' } };
   }
 }
