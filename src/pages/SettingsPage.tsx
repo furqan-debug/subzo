@@ -111,7 +111,7 @@ const SettingsPage = () => {
   const canReminders = canAccess(subscriptionPlan, 'smart_reminders');
   const memberSince = user?.created_at ? format(new Date(user.created_at), 'MMMM yyyy') : null;
 
-  const handleExportCSV = () => {
+  const handleExportCSV = async () => {
     if (!subscriptions?.length) {
       toast({ title: 'No data', description: 'You have no subscriptions to export.' });
       return;
@@ -126,13 +126,21 @@ const SettingsPage = () => {
       s.next_renewal,
     ]);
     const csv = [headers, ...rows].map((r) => r.map((v) => `"${v}"`).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `subscriptions-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const fileName = `subscriptions-${new Date().toISOString().slice(0, 10)}.csv`;
+
+    if (Capacitor.isNativePlatform()) {
+      const { shareFileNative } = await import('@/lib/nativeShare');
+      const { Encoding } = await import('@capacitor/filesystem');
+      await shareFileNative(fileName, csv, 'text/csv', Encoding.UTF8);
+    } else {
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
     toast({ title: 'Exported!', description: `${subscriptions.length} subscriptions exported.` });
   };
 
