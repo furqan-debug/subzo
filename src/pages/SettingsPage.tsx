@@ -351,12 +351,12 @@ const SettingsPage = () => {
               <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
             </button>
             <button
-              onClick={() => {
+              onClick={async () => {
                 if (!subscriptions?.length) {
                   toast({ title: 'No data', description: 'You have no subscriptions to export.' });
                   return;
                 }
-                exportSubscriptionsPdf(subscriptions, currency);
+                await exportSubscriptionsPdf(subscriptions, currency);
                 toast({ title: 'PDF exported!', description: `${subscriptions.length} subscriptions exported.` });
               }}
               className="flex items-center justify-between w-full px-5 py-4 text-left hover:bg-secondary/30 transition-colors"
