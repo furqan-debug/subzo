@@ -170,6 +170,37 @@ export const scheduleRenewalNotifications = async (
   }
 };
 
+const WELCOME_NOTIF_ID = 888888;
+
+/** Schedule a premium welcome notification 3s after call */
+export const scheduleWelcomeNotification = async (userName: string) => {
+  if (!isNative) return;
+
+  try {
+    const fireAt = new Date(Date.now() + 3000);
+    const displayName = userName || 'there';
+
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: WELCOME_NOTIF_ID,
+          title: '✨ Welcome to SubTracker',
+          body: `Hey ${displayName}, welcome aboard! 🚀 Track your subscriptions like a pro and never miss a renewal.`,
+          schedule: { at: fireAt },
+          channelId: CHANNEL_INSIGHTS,
+          sound: 'default',
+          smallIcon: 'ic_stat_icon_config_sample',
+          iconColor: '#6366f1',
+          extra: { type: 'welcome' },
+        },
+      ],
+    });
+    console.log('Welcome notification scheduled');
+  } catch (e) {
+    console.warn('Failed to schedule welcome notification:', e);
+  }
+};
+
 export const requestNotificationPermission = async (): Promise<boolean> => {
   if (!isNative) return false;
 
