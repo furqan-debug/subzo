@@ -184,8 +184,8 @@ export const scheduleWelcomeNotification = async (userName: string) => {
       notifications: [
         {
           id: WELCOME_NOTIF_ID,
-          title: '✨ Welcome to SubTracker',
-          body: `Hey ${displayName}, welcome aboard! 🚀 Track your subscriptions like a pro and never miss a renewal.`,
+          title: `Hey ${displayName} 👋`,
+          body: `You're all set! We'll keep your subscriptions in check. 💎`,
           schedule: { at: fireAt },
           channelId: CHANNEL_INSIGHTS,
           sound: 'default',
