@@ -1,92 +1,50 @@
 
-# Make the App Smooth, Fast, and Offline-Ready
 
-This plan focuses on three pillars: **performance**, **smoothness**, and **offline resilience** -- all achievable within the current React + Capacitor + Supabase stack.
+# Fix Mobile Export + Add Welcome Notification
 
----
+## Problem 1: PDF/CSV Export Broken on Android
 
-## 1. Offline Data Caching with React Query
+The current export uses `doc.save()` (jsPDF) and `document.createElement('a').click()` with blob URLs. These rely on browser download behavior that **does not work inside Android WebView** (Capacitor). The WebView has no download manager.
 
-React Query supports an "offline-first" mode out of the box. We'll configure it so users can browse their subscriptions even without internet.
+### Fix
 
-### Changes to `src/App.tsx`:
-- Configure the global `QueryClient` with offline-friendly defaults:
-  - `gcTime: Infinity` -- keep cached data in memory permanently (until app restart)
-  - `staleTime: 5 * 60 * 1000` (5 minutes) -- reduce unnecessary refetches
-  - `retry: 2` with `retryDelay` for graceful network retries
-  - `networkMode: 'offlineFirst'` -- serve cache instantly, then sync in background
+Install `@capacitor/filesystem` and `@capacitor/share`. On native platforms, write the file to the device cache directory, then trigger the native share sheet so the user can save/send it.
 
-### Changes to `src/hooks/useSubscriptions.ts` and `src/hooks/useProfile.ts`:
-- Remove per-query `staleTime` overrides (global default takes over)
-- Add `networkMode: 'offlineFirst'` to mutations so they queue when offline
+**Files to modify:**
+- **`src/lib/exportPdf.ts`** — Instead of `doc.save()`, detect native platform → write PDF bytes via `Filesystem.writeFile()` → open share sheet via `Share.share()`. On web, keep current behavior.
+- **`src/pages/SettingsPage.tsx`** — Update CSV export: on native, write CSV string to cache via Filesystem, then share. On web, keep blob URL approach.
 
----
+```text
+Export flow (native):
+  Generate data → Write to Filesystem (cache dir) → Share.share({ url: filePath })
+  
+Export flow (web):
+  Keep existing blob/download behavior
+```
 
-## 2. Persist Cache Across Sessions
+## Problem 2: Welcome Notification on First Login
 
-### New utility: `src/lib/queryPersister.ts`
-- Create a lightweight localStorage-based persister that saves/restores the React Query cache
-- On app load, hydrate from localStorage; on cache updates, debounce-write to localStorage
-- This means even after closing and reopening the app, the last-known data is shown instantly
+Send a premium-feeling local notification immediately after first sign-in or sign-up, personalized with the user's name.
 
-### Changes to `src/App.tsx`:
-- Wrap the app with `PersistQueryClientProvider` from `@tanstack/react-query-persist-client` (already included with `@tanstack/react-query`)
-- Or implement a simpler manual approach: subscribe to query cache changes and persist to localStorage, then restore on init
+### Implementation
 
-Given the dependency constraints (no new packages), we'll use a manual approach:
-- `queryClient.getQueryCache().subscribe()` to listen for changes
-- Debounce writes to `localStorage` 
-- On startup, call `queryClient.setQueryData()` for each stored key
+- **`src/hooks/useNotifications.ts`** — Add `scheduleWelcomeNotification(userName: string)` that fires a notification ~3 seconds after call. Uses the `spending_insights` channel. Title: "Welcome to SubTracker ✨", body personalized with name.
+- **`src/components/NotificationScheduler.tsx`** — Track whether welcome notification was already sent (via `localStorage` flag `subtracker_welcome_sent`). On mount, if user exists and flag is not set, request permission and fire the welcome notification, then set the flag.
 
----
+### Notification Design
+- Channel: `spending_insights` (default priority, no aggressive vibration)
+- Icon color: `#6366f1` (primary purple, matching app theme)
+- Fires 3 seconds after login so user sees it after the app loads
+- Body example: "Hey Alex, welcome aboard! 🚀 Track your subscriptions like a pro and never miss a renewal."
 
-## 3. Offline Status Indicator
+## Dependencies to Install
+- `@capacitor/filesystem`
+- `@capacitor/share`
 
-### New component: `src/components/OfflineBanner.tsx`
-- A small, animated banner that slides in at the top when `navigator.onLine` is false
-- Shows "You're offline -- showing cached data" with a subtle warning color
-- Auto-dismisses when back online with a brief "Back online" confirmation
-- Uses `online`/`offline` window events
+## Files Changed
+1. `src/lib/exportPdf.ts` — Native-aware PDF export
+2. `src/pages/SettingsPage.tsx` — Native-aware CSV export  
+3. `src/hooks/useNotifications.ts` — Add welcome notification function
+4. `src/components/NotificationScheduler.tsx` — Trigger welcome notification on first login
+5. `package.json` — Add `@capacitor/filesystem` and `@capacitor/share`
 
-### Changes to `src/App.tsx`:
-- Add `<OfflineBanner />` inside the app tree
-
----
-
-## 4. Performance Optimizations
-
-### Reduce animation overhead:
-- **`src/pages/Index.tsx`**: Remove staggered `delay` on subscription list items (already lean). Ensure `motion.div` uses `layout` prop sparingly
-- **`src/components/PageTransition.tsx`**: Keep the current 100ms transition (already fast)
-
-### Optimize images:
-- **`src/pages/AddSubscription.tsx`** and **`src/pages/Index.tsx`**: Add `loading="lazy"` and `decoding="async"` to all `<img>` tags for subscription logos (some already have `loading="lazy"`)
-
-### Font loading:
-- **`index.html`**: Add `font-display: swap` to the Google Fonts URL to prevent FOIT (flash of invisible text). Change the URL from `display=swap` (already present -- confirm it's working)
-
----
-
-## 5. Smooth Touch Interactions
-
-### Changes to `src/index.css`:
-- Add `will-change: transform` to `.glass-card` for GPU-accelerated transitions
-- Add `touch-action: manipulation` on interactive elements to remove 300ms tap delay on mobile
-
----
-
-## Technical Summary
-
-| File | Change |
-|---|---|
-| `src/App.tsx` | Configure QueryClient with offline-first defaults; add cache persistence; add OfflineBanner |
-| `src/lib/queryPersister.ts` | New file -- localStorage cache persist/restore utility |
-| `src/components/OfflineBanner.tsx` | New file -- offline status indicator component |
-| `src/hooks/useSubscriptions.ts` | Remove per-query staleTime, add offlineFirst to mutations |
-| `src/hooks/useProfile.ts` | Remove per-query staleTime |
-| `src/pages/Index.tsx` | Add `decoding="async"` to logo images |
-| `src/pages/AddSubscription.tsx` | Add `decoding="async"` to logo images |
-| `src/index.css` | Add `touch-action: manipulation` and `will-change: transform` for smooth touch |
-| `index.html` | Verify font-display swap is active |
-
-No new dependencies required -- all features use built-in React Query capabilities and browser APIs.
