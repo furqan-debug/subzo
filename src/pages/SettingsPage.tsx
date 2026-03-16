@@ -13,6 +13,7 @@ import { canAccess } from '@/lib/planFeatures';
 import FeatureGate from '@/components/FeatureGate';
 import { exportSubscriptionsPdf } from '@/lib/exportPdf';
 import { useNavigate } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
 import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog,
