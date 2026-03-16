@@ -1,13 +1,15 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { Subscription } from '@/hooks/useSubscriptions';
+import { Capacitor } from '@capacitor/core';
+import { shareBinaryFileNative } from './nativeShare';
 
-export function exportSubscriptionsPdf(subscriptions: Subscription[], currency: string) {
+export async function exportSubscriptionsPdf(subscriptions: Subscription[], currency: string) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 
   // ── Header band ──
-  doc.setFillColor(99, 62, 255); // primary purple
+  doc.setFillColor(99, 62, 255);
   doc.rect(0, 0, pageWidth, 38, 'F');
 
   doc.setTextColor(255, 255, 255);
@@ -62,29 +64,11 @@ export function exportSubscriptionsPdf(subscriptions: Subscription[], currency: 
     head: headers,
     body: rows,
     theme: 'grid',
-    headStyles: {
-      fillColor: [99, 62, 255],
-      textColor: 255,
-      fontStyle: 'bold',
-      fontSize: 9,
-    },
-    bodyStyles: {
-      fontSize: 8.5,
-      textColor: [50, 50, 50],
-    },
-    alternateRowStyles: {
-      fillColor: [245, 243, 255],
-    },
-    styles: {
-      cellPadding: 4,
-      lineColor: [220, 220, 230],
-      lineWidth: 0.3,
-    },
-    columnStyles: {
-      0: { cellWidth: 10, halign: 'center' },
-      2: { halign: 'right' },
-      5: { halign: 'center' },
-    },
+    headStyles: { fillColor: [99, 62, 255], textColor: 255, fontStyle: 'bold', fontSize: 9 },
+    bodyStyles: { fontSize: 8.5, textColor: [50, 50, 50] },
+    alternateRowStyles: { fillColor: [245, 243, 255] },
+    styles: { cellPadding: 4, lineColor: [220, 220, 230], lineWidth: 0.3 },
+    columnStyles: { 0: { cellWidth: 10, halign: 'center' }, 2: { halign: 'right' }, 5: { halign: 'center' } },
     margin: { left: 14, right: 14 },
   });
 
@@ -99,5 +83,12 @@ export function exportSubscriptionsPdf(subscriptions: Subscription[], currency: 
     doc.text(`Page ${i} of ${pageCount}`, pageWidth - 14, pageH - 10, { align: 'right' });
   }
 
-  doc.save(`subscriptions-${new Date().toISOString().slice(0, 10)}.pdf`);
+  const fileName = `subscriptions-${new Date().toISOString().slice(0, 10)}.pdf`;
+
+  if (Capacitor.isNativePlatform()) {
+    const base64 = doc.output('datauristring').split(',')[1];
+    await shareBinaryFileNative(fileName, base64);
+  } else {
+    doc.save(fileName);
+  }
 }
