@@ -54,9 +54,14 @@ export const createNotificationChannels = async () => {
   }
 };
 
-/** Format currency amount */
-const fmt = (currency: string, amount: number) =>
-  `${currency}${amount.toFixed(2).replace(/\.00$/, '')}`;
+/** Format currency amount using locale-aware formatter */
+const fmt = (currency: string, amount: number) => {
+  try {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+  } catch {
+    return `${currency} ${amount.toFixed(2)}`;
+  }
+};
 
 export const scheduleRenewalNotifications = async (
   subscriptions: Subscription[],
