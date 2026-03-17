@@ -52,7 +52,7 @@ const Plans = () => {
     setLoading('free');
     try {
       await cancelPlan();
-      toast({ title: 'Plan cancelled', description: 'You're now on the Free tier.' });
+      toast({ title: 'Plan cancelled', description: "You're now on the Free tier." });
     } catch {
       toast({ title: 'Something went wrong', variant: 'destructive' });
     } finally {
