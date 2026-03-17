@@ -138,9 +138,20 @@ const Plans = () => {
               No analytics
             </li>
           </ul>
-          <Button variant="outline" className="w-full opacity-60" disabled>
-            {!subscriptionPlan ? 'Current Plan' : 'Free Tier'}
-          </Button>
+          {!subscriptionPlan ? (
+            <Button variant="outline" className="w-full opacity-60" disabled>
+              Current Plan
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleDowngrade}
+              disabled={loading !== null}
+            >
+              {loading === 'free' ? 'Cancelling…' : 'Downgrade to Free'}
+            </Button>
+          )}
         </motion.div>
 
         {/* Pro Monthly */}
