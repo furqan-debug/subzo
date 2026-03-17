@@ -55,6 +55,7 @@ export const useProfile = () => {
     isLoading,
     subscriptionPlan,
     selectPlan,
+    cancelPlan,
     refetch,
   };
 };
