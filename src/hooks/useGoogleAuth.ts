@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
+import { getRedirectUrl } from '@/lib/redirectUrl';
 
 const GOOGLE_WEB_CLIENT_ID = '710406899937-8i7n9kdivc214t5hvl3qf9t9oj4lc5pn.apps.googleusercontent.com';
 
