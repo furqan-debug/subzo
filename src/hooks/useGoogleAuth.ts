@@ -78,7 +78,7 @@ async function signInWeb(): Promise<{ error: { message: string } | null }> {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: window.location.origin,
+      redirectTo: getRedirectUrl('/'),
     },
   });
 
