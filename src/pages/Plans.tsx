@@ -29,7 +29,7 @@ const comparisonFeatures = [
 
 const Plans = () => {
   const navigate = useNavigate();
-  const { selectPlan, subscriptionPlan } = useProfile();
+  const { selectPlan, cancelPlan, subscriptionPlan } = useProfile();
   const { toast } = useToast();
   const [loading, setLoading] = useState<string | null>(null);
   const currentTier = getPlanTier(subscriptionPlan);
@@ -41,6 +41,18 @@ const Plans = () => {
       playAddCelebration();
       toast({ title: '🎉 Welcome to Pro!', description: 'All features are now unlocked.' });
       setTimeout(() => navigate('/'), 600);
+    } catch {
+      toast({ title: 'Something went wrong', variant: 'destructive' });
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleDowngrade = async () => {
+    setLoading('free');
+    try {
+      await cancelPlan();
+      toast({ title: 'Plan cancelled', description: 'You're now on the Free tier.' });
     } catch {
       toast({ title: 'Something went wrong', variant: 'destructive' });
     } finally {
