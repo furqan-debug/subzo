@@ -1,6 +1,7 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { getRedirectUrl } from '@/lib/redirectUrl';
 
 interface AuthContextType {
   session: Session | null;
