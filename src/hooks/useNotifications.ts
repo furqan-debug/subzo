@@ -159,7 +159,7 @@ export const scheduleRenewalNotifications = async (
           schedule: { at: summaryAt, every: 'week' as const },
           channelId: CHANNEL_INSIGHTS,
           sound: 'default' as const,
-          smallIcon: 'ic_stat_icon_config_sample',
+          smallIcon: 'ic_launcher',
           iconColor: '#10b981',
           extra: { type: 'weekly_summary' },
         });
