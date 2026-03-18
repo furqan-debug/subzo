@@ -97,7 +97,7 @@ export const scheduleRenewalNotifications = async (
           schedule: { at: earlyAt },
           channelId: CHANNEL_RENEWALS,
           sound: 'default' as const,
-          smallIcon: 'ic_stat_icon_config_sample',
+          smallIcon: 'ic_launcher',
           iconColor: '#6366f1',
           extra: { subscriptionId: sub.id, type: 'renewal_early' },
         });
