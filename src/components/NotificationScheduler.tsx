@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { canAccess } from '@/lib/planFeatures';
 import { Capacitor } from '@capacitor/core';
 
-const WELCOME_SENT_KEY = 'subtracker_welcome_sent';
+const WELCOME_SENT_KEY = 'subzo_welcome_sent';
 
 /** Invisible component that syncs local notifications with subscriptions */
 const NotificationScheduler = () => {

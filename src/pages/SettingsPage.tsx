@@ -429,7 +429,7 @@ const SettingsPage = () => {
       {/* App version */}
       <div className="flex items-center justify-center gap-1.5 pt-2">
         <Info className="h-3 w-3 text-muted-foreground/40" />
-        <p className="text-[11px] text-muted-foreground/40">SubTracker v1.0.0</p>
+        <p className="text-[11px] text-muted-foreground/40">Subzo v1.0.0</p>
       </div>
     </div>
   );
