@@ -194,7 +194,7 @@ export const scheduleWelcomeNotification = async (userName: string) => {
           schedule: { at: fireAt },
           channelId: CHANNEL_INSIGHTS,
           sound: 'default',
-          smallIcon: 'ic_stat_icon_config_sample',
+          smallIcon: 'ic_launcher',
           iconColor: '#6366f1',
           extra: { type: 'welcome' },
         },
