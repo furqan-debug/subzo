@@ -8,7 +8,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { useDeepLinkHandler } from "@/hooks/useDeepLinkHandler";
 import { initializeGoogleAuth } from "@/hooks/useGoogleAuth";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import { addNotificationTapListener } from "@/hooks/useNotifications";
 import { useNavigate } from "react-router-dom";
@@ -16,16 +16,20 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import AppLayout from "@/components/AppLayout";
 import PageTransition from "@/components/PageTransition";
 import NotificationScheduler from "@/components/NotificationScheduler";
+
+// Eagerly loaded (initial route)
 import Auth from "./pages/Auth";
-import ResetPassword from "./pages/ResetPassword";
 import Index from "./pages/Index";
-import AddSubscription from "./pages/AddSubscription";
-import SubscriptionDetail from "./pages/SubscriptionDetail";
-import Analytics from "./pages/Analytics";
-import CalendarPage from "./pages/CalendarPage";
-import SettingsPage from "./pages/SettingsPage";
-import Plans from "./pages/Plans";
-import NotFound from "./pages/NotFound";
+
+// Lazy-loaded pages
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const AddSubscription = lazy(() => import("./pages/AddSubscription"));
+const SubscriptionDetail = lazy(() => import("./pages/SubscriptionDetail"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const CalendarPage = lazy(() => import("./pages/CalendarPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const Plans = lazy(() => import("./pages/Plans"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -53,26 +57,27 @@ const AppRoutes = () => {
     initializeGoogleAuth();
   }, []);
 
-  // Listen for notification taps → deep link to subscription detail
   useEffect(() => {
     return addNotificationTapListener(navigate);
   }, [navigate]);
 
   return (
-    <AnimatePresence>
-      <Routes location={location} key={location.pathname}>
-        <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
-        <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
-        <Route path="/plans" element={<ProtectedRoute><PageTransition><Plans /></PageTransition></ProtectedRoute>} />
-        <Route path="/" element={<ProtectedRoute><AppLayout><PageTransition><Index /></PageTransition></AppLayout></ProtectedRoute>} />
-        <Route path="/add" element={<ProtectedRoute><AppLayout><PageTransition><AddSubscription /></PageTransition></AppLayout></ProtectedRoute>} />
-        <Route path="/subscription/:id" element={<ProtectedRoute><AppLayout><PageTransition><SubscriptionDetail /></PageTransition></AppLayout></ProtectedRoute>} />
-        <Route path="/analytics" element={<ProtectedRoute><AppLayout><PageTransition><Analytics /></PageTransition></AppLayout></ProtectedRoute>} />
-        <Route path="/calendar" element={<ProtectedRoute><AppLayout><PageTransition><CalendarPage /></PageTransition></AppLayout></ProtectedRoute>} />
-        <Route path="/settings" element={<ProtectedRoute><AppLayout><PageTransition><SettingsPage /></PageTransition></AppLayout></ProtectedRoute>} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </AnimatePresence>
+    <Suspense fallback={null}>
+      <AnimatePresence>
+        <Routes location={location} key={location.pathname}>
+          <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
+          <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
+          <Route path="/plans" element={<ProtectedRoute><PageTransition><Plans /></PageTransition></ProtectedRoute>} />
+          <Route path="/" element={<ProtectedRoute><AppLayout><PageTransition><Index /></PageTransition></AppLayout></ProtectedRoute>} />
+          <Route path="/add" element={<ProtectedRoute><AppLayout><PageTransition><AddSubscription /></PageTransition></AppLayout></ProtectedRoute>} />
+          <Route path="/subscription/:id" element={<ProtectedRoute><AppLayout><PageTransition><SubscriptionDetail /></PageTransition></AppLayout></ProtectedRoute>} />
+          <Route path="/analytics" element={<ProtectedRoute><AppLayout><PageTransition><Analytics /></PageTransition></AppLayout></ProtectedRoute>} />
+          <Route path="/calendar" element={<ProtectedRoute><AppLayout><PageTransition><CalendarPage /></PageTransition></AppLayout></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><AppLayout><PageTransition><SettingsPage /></PageTransition></AppLayout></ProtectedRoute>} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </AnimatePresence>
+    </Suspense>
   );
 };
 
