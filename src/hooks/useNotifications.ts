@@ -97,7 +97,7 @@ export const scheduleRenewalNotifications = async (
           schedule: { at: earlyAt },
           channelId: CHANNEL_RENEWALS,
           sound: 'default' as const,
-          smallIcon: 'ic_stat_icon_config_sample',
+          smallIcon: 'ic_launcher',
           iconColor: '#6366f1',
           extra: { subscriptionId: sub.id, type: 'renewal_early' },
         });
@@ -113,7 +113,7 @@ export const scheduleRenewalNotifications = async (
           schedule: { at: dayOfAt },
           channelId: CHANNEL_RENEWALS,
           sound: 'default' as const,
-          smallIcon: 'ic_stat_icon_config_sample',
+          smallIcon: 'ic_launcher',
           iconColor: '#6366f1',
           extra: { subscriptionId: sub.id, type: 'renewal_today' },
         });
@@ -132,7 +132,7 @@ export const scheduleRenewalNotifications = async (
             schedule: { at: trialAt },
             channelId: CHANNEL_TRIALS,
             sound: 'default' as const,
-            smallIcon: 'ic_stat_icon_config_sample',
+            smallIcon: 'ic_launcher',
             iconColor: '#ef4444',
             extra: { subscriptionId: sub.id, type: 'trial_expiry' },
           });
@@ -159,7 +159,7 @@ export const scheduleRenewalNotifications = async (
           schedule: { at: summaryAt, every: 'week' as const },
           channelId: CHANNEL_INSIGHTS,
           sound: 'default' as const,
-          smallIcon: 'ic_stat_icon_config_sample',
+          smallIcon: 'ic_launcher',
           iconColor: '#10b981',
           extra: { type: 'weekly_summary' },
         });
@@ -194,7 +194,7 @@ export const scheduleWelcomeNotification = async (userName: string) => {
           schedule: { at: fireAt },
           channelId: CHANNEL_INSIGHTS,
           sound: 'default',
-          smallIcon: 'ic_stat_icon_config_sample',
+          smallIcon: 'ic_launcher',
           iconColor: '#6366f1',
           extra: { type: 'welcome' },
         },
