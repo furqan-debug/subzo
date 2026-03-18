@@ -15,7 +15,7 @@ export async function exportSubscriptionsPdf(subscriptions: Subscription[], curr
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
-  doc.text('SubTracker', 14, 18);
+  doc.text('Subzo', 14, 18);
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
