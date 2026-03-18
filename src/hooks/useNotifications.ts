@@ -132,7 +132,7 @@ export const scheduleRenewalNotifications = async (
             schedule: { at: trialAt },
             channelId: CHANNEL_TRIALS,
             sound: 'default' as const,
-            smallIcon: 'ic_stat_icon_config_sample',
+            smallIcon: 'ic_launcher',
             iconColor: '#ef4444',
             extra: { subscriptionId: sub.id, type: 'trial_expiry' },
           });
