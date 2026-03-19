@@ -67,6 +67,7 @@ const AppRoutes = () => {
       <AnimatePresence>
         <Routes location={location} key={location.pathname}>
           <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
           <Route path="/plans" element={<ProtectedRoute><PageTransition><Plans /></PageTransition></ProtectedRoute>} />
           <Route path="/" element={<ProtectedRoute><AppLayout><PageTransition><Index /></PageTransition></AppLayout></ProtectedRoute>} />
