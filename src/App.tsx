@@ -22,6 +22,7 @@ import Auth from "./pages/Auth";
 import Index from "./pages/Index";
 
 // Lazy-loaded pages
+const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const AddSubscription = lazy(() => import("./pages/AddSubscription"));
 const SubscriptionDetail = lazy(() => import("./pages/SubscriptionDetail"));
