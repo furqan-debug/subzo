@@ -7,9 +7,8 @@
  * scheme, so the user never actually sees the web app.
  */
 
-const WEB_URL = 'https://8f6f7216-fd23-4557-bf5f-8e7ab00fbcd0.lovableproject.com';
+const WEB_URL = 'https://8f6f7216-fd23-4557-bf5f-8e7ab00fbcd0.lovableproject.com' as const;
 
 export function getRedirectUrl(path = '/'): string {
-  // Always redirect through the web callback page which bounces to native
   return `${WEB_URL}/auth/callback`;
 }
