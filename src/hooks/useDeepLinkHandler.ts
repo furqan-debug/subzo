@@ -11,47 +11,59 @@ export const useDeepLinkHandler = () => {
 
   useEffect(() => {
     let cleanup: (() => void) | undefined;
+    let lastHandledUrl = '';
+
+    const closeAuthBrowser = async () => {
+      try {
+        await Browser.close();
+      } catch {
+        // Browser may already be closed; ignore
+      }
+    };
+
+    const handleIncomingUrl = async (incomingUrl?: string | null) => {
+      if (!incomingUrl || incomingUrl === lastHandledUrl) return;
+
+      lastHandledUrl = incomingUrl;
+
+      const urlObj = new URL(incomingUrl);
+      const hash = urlObj.hash.startsWith('#') ? urlObj.hash.slice(1) : urlObj.hash;
+      const hashParams = new URLSearchParams(hash);
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      const authType = hashParams.get('type');
+      const code = urlObj.searchParams.get('code');
+
+      if (accessToken && refreshToken) {
+        await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+        await closeAuthBrowser();
+        navigate(authType === 'recovery' ? `/reset-password${urlObj.hash}` : '/', { replace: true });
+        return;
+      }
+
+      if (code) {
+        await supabase.auth.exchangeCodeForSession(code);
+        await closeAuthBrowser();
+        navigate('/', { replace: true });
+        return;
+      }
+
+      if (urlObj.pathname && urlObj.pathname !== '/auth/callback') {
+        navigate(urlObj.pathname, { replace: true });
+      }
+    };
 
     // Handle deep links from Capacitor (native mobile)
     const setupCapacitorDeepLinks = async () => {
       try {
         const { App } = await import('@capacitor/app');
 
-        const closeAuthBrowser = async () => {
-          try {
-            await Browser.close();
-          } catch {
-            // Browser may already be closed; ignore
-          }
-        };
-
         const listener = await App.addListener('appUrlOpen', async ({ url }) => {
-          const urlObj = new URL(url);
-          const hash = urlObj.hash.startsWith('#') ? urlObj.hash.slice(1) : urlObj.hash;
-          const hashParams = new URLSearchParams(hash);
-          const accessToken = hashParams.get('access_token');
-          const refreshToken = hashParams.get('refresh_token');
-          const authType = hashParams.get('type');
-          const code = urlObj.searchParams.get('code');
-
-          if (accessToken && refreshToken) {
-            await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
-            await closeAuthBrowser();
-            navigate(authType === 'recovery' ? '/reset-password' : '/', { replace: true });
-            return;
-          }
-
-          if (code) {
-            await supabase.auth.exchangeCodeForSession(code);
-            await closeAuthBrowser();
-            navigate('/', { replace: true });
-            return;
-          }
-
-          if (urlObj.pathname && urlObj.pathname !== '/auth/callback') {
-            navigate(urlObj.pathname, { replace: true });
-          }
+          await handleIncomingUrl(url);
         });
+
+        const launchUrl = await App.getLaunchUrl();
+        await handleIncomingUrl(launchUrl?.url);
 
         cleanup = () => listener.remove();
       } catch {
