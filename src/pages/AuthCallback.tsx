@@ -17,18 +17,27 @@ const AuthCallback = () => {
     const hash = window.location.hash;
     const search = window.location.search;
     
-    // Build the native deep link with the same tokens
-    const nativeUrl = `${NATIVE_SCHEME}://auth/callback${search}${hash}`;
-    
-    // Redirect to native app
-    window.location.href = nativeUrl;
+    // Triple slash keeps the callback as a real pathname (/auth/callback)
+    // instead of treating "auth" as the URL host on Android.
+    const nativeUrl = `${NATIVE_SCHEME}:///auth/callback${search}${hash}`;
+
+    const openNativeApp = () => {
+      window.location.replace(nativeUrl);
+    };
+
+    openNativeApp();
+
+    const retry = window.setTimeout(openNativeApp, 250);
     
     // Fallback: if the redirect doesn't work after 3s, show a message
     const timeout = setTimeout(() => {
       document.getElementById('fallback')?.classList.remove('hidden');
     }, 3000);
     
-    return () => clearTimeout(timeout);
+    return () => {
+      clearTimeout(retry);
+      clearTimeout(timeout);
+    };
   }, []);
 
   return (
