@@ -13,6 +13,13 @@ export const useDeepLinkHandler = () => {
     let cleanup: (() => void) | undefined;
     let lastHandledUrl = '';
 
+    const normalizePath = (urlObj: URL) => {
+      if (urlObj.pathname === '/auth/callback') return '/auth/callback';
+      if (urlObj.hostname === 'auth' && urlObj.pathname === '/callback') return '/auth/callback';
+      if (urlObj.hostname === 'reset-password' && (!urlObj.pathname || urlObj.pathname === '/')) return '/reset-password';
+      return urlObj.pathname;
+    };
+
     const closeAuthBrowser = async () => {
       try {
         await Browser.close();
@@ -29,10 +36,12 @@ export const useDeepLinkHandler = () => {
       const urlObj = new URL(incomingUrl);
       const hash = urlObj.hash.startsWith('#') ? urlObj.hash.slice(1) : urlObj.hash;
       const hashParams = new URLSearchParams(hash);
-      const accessToken = hashParams.get('access_token');
-      const refreshToken = hashParams.get('refresh_token');
-      const authType = hashParams.get('type');
+      const searchParams = urlObj.searchParams;
+      const accessToken = hashParams.get('access_token') ?? searchParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token') ?? searchParams.get('refresh_token');
+      const authType = hashParams.get('type') ?? searchParams.get('type');
       const code = urlObj.searchParams.get('code');
+      const normalizedPath = normalizePath(urlObj);
 
       if (accessToken && refreshToken) {
         await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
@@ -48,8 +57,8 @@ export const useDeepLinkHandler = () => {
         return;
       }
 
-      if (urlObj.pathname && urlObj.pathname !== '/auth/callback') {
-        navigate(urlObj.pathname, { replace: true });
+      if (normalizedPath && normalizedPath !== '/auth/callback') {
+        navigate(normalizedPath, { replace: true });
       }
     };
 

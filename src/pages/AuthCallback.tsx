@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 /**
  * Transparent auth callback page.
@@ -10,44 +11,61 @@ import { Loader2 } from 'lucide-react';
  * Users never see this page — it's a pass-through.
  */
 const AuthCallback = () => {
-  useEffect(() => {
-    const NATIVE_SCHEME = 'com.subzo.app';
-    
-    // Grab everything from the current URL (hash + search params)
-    const hash = window.location.hash;
-    const search = window.location.search;
-    
-    // Triple slash keeps the callback as a real pathname (/auth/callback)
-    // instead of treating "auth" as the URL host on Android.
-    const nativeUrl = `${NATIVE_SCHEME}:///auth/callback${search}${hash}`;
+  const [showFallback, setShowFallback] = useState(false);
 
-    const openNativeApp = () => {
-      window.location.replace(nativeUrl);
+  const launchUrls = useMemo(() => {
+    const currentUrl = new URL(window.location.href);
+    const combinedParams = new URLSearchParams(currentUrl.search);
+    const hashParams = new URLSearchParams(currentUrl.hash.startsWith('#') ? currentUrl.hash.slice(1) : currentUrl.hash);
+
+    hashParams.forEach((value, key) => {
+      if (!combinedParams.has(key)) {
+        combinedParams.set(key, value);
+      }
+    });
+
+    const query = combinedParams.toString();
+    const appPath = `auth/callback${query ? `?${query}` : ''}`;
+
+    return {
+      native: `com.subzo.app://${appPath}`,
+      intent: `intent://${appPath}#Intent;scheme=com.subzo.app;package=com.subzo.app;end`,
+    };
+  }, []);
+
+  useEffect(() => {
+    const isAndroid = /android/i.test(window.navigator.userAgent);
+    const primaryUrl = isAndroid ? launchUrls.intent : launchUrls.native;
+    const secondaryUrl = isAndroid ? launchUrls.native : launchUrls.intent;
+
+    const openNativeApp = (url: string) => {
+      window.location.replace(url);
     };
 
-    openNativeApp();
+    openNativeApp(primaryUrl);
 
-    const retry = window.setTimeout(openNativeApp, 250);
-    
-    // Fallback: if the redirect doesn't work after 3s, show a message
-    const timeout = setTimeout(() => {
-      document.getElementById('fallback')?.classList.remove('hidden');
-    }, 3000);
+    const retry = window.setTimeout(() => openNativeApp(secondaryUrl), 600);
+    const timeout = window.setTimeout(() => setShowFallback(true), 2200);
     
     return () => {
       clearTimeout(retry);
       clearTimeout(timeout);
     };
-  }, []);
+  }, [launchUrls]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background gap-4">
       <Loader2 className="h-8 w-8 animate-spin text-primary" />
       <p className="text-muted-foreground text-sm">Opening Subzo...</p>
-      <div id="fallback" className="hidden text-center space-y-2 mt-4">
-        <p className="text-foreground text-sm font-medium">Couldn't open the app automatically.</p>
-        <p className="text-muted-foreground text-xs">Please open the Subzo app on your device.</p>
-      </div>
+      {showFallback && (
+        <div className="mt-4 space-y-3 text-center">
+          <p className="text-foreground text-sm font-medium">Open Subzo to finish signing in.</p>
+          <p className="text-muted-foreground text-xs">Tap below if Android did not switch back automatically.</p>
+          <Button asChild variant="outline" size="sm">
+            <a href={launchUrls.intent}>Open Subzo</a>
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
