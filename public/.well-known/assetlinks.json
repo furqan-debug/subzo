@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.subzo.app",
+      "sha256_cert_fingerprints": [
+        "E0:5A:9D:4C:97:36:44:B6:E5:7E:E6:19:91:DD:65:E1:6F:25:F5:11:B9:E0:30:29:88:E3:21:89:1D:9F:1C:B8"
+      ]
+    }
+  }
+]
