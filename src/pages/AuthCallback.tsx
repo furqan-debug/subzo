@@ -2,21 +2,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-/**
- * Transparent auth callback page.
- * When Supabase verifies an email, it redirects here (web URL) with auth tokens.
- * This page immediately redirects to the native app scheme (com.subzo.app://)
- * so the Android app opens and handles the session.
- * 
- * Users never see this page — it's a pass-through.
- */
 const AuthCallback = () => {
   const [showFallback, setShowFallback] = useState(false);
 
-  const launchUrls = useMemo(() => {
+  const launchUrl = useMemo(() => {
     const currentUrl = new URL(window.location.href);
     const combinedParams = new URLSearchParams(currentUrl.search);
-    const hashParams = new URLSearchParams(currentUrl.hash.startsWith('#') ? currentUrl.hash.slice(1) : currentUrl.hash);
+    const hashParams = new URLSearchParams(
+      currentUrl.hash.startsWith('#') ? currentUrl.hash.slice(1) : currentUrl.hash
+    );
 
     hashParams.forEach((value, key) => {
       if (!combinedParams.has(key)) {
@@ -25,45 +19,49 @@ const AuthCallback = () => {
     });
 
     const query = combinedParams.toString();
-    const appPath = `auth/callback${query ? `?${query}` : ''}`;
-
-    return {
-      native: `com.subzo.app://${appPath}`,
-      intent: `intent://${appPath}#Intent;scheme=com.subzo.app;package=com.subzo.app;end`,
-    };
+    return `com.subzo.app://auth/callback${query ? `?${query}` : ''}`;
   }, []);
 
   useEffect(() => {
-    const isAndroid = /android/i.test(window.navigator.userAgent);
-    const primaryUrl = isAndroid ? launchUrls.intent : launchUrls.native;
-    const secondaryUrl = isAndroid ? launchUrls.native : launchUrls.intent;
+    // Try custom scheme redirect immediately
+    window.location.href = launchUrl;
 
-    const openNativeApp = (url: string) => {
-      window.location.replace(url);
-    };
+    // Retry after a short delay
+    const retry = setTimeout(() => {
+      window.location.href = launchUrl;
+    }, 300);
 
-    openNativeApp(primaryUrl);
+    // Show manual fallback after 2s
+    const fallback = setTimeout(() => setShowFallback(true), 2000);
 
-    const retry = window.setTimeout(() => openNativeApp(secondaryUrl), 600);
-    const timeout = window.setTimeout(() => setShowFallback(true), 2200);
-    
     return () => {
       clearTimeout(retry);
-      clearTimeout(timeout);
+      clearTimeout(fallback);
     };
-  }, [launchUrls]);
+  }, [launchUrl]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background gap-4">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      <p className="text-muted-foreground text-sm">Opening Subzo...</p>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[#0a0a0a] gap-4 px-6">
+      <div className="flex flex-col items-center gap-2">
+        <h1 className="text-2xl font-bold text-white tracking-tight">Subzo</h1>
+        <Loader2 className="h-6 w-6 animate-spin text-[#6366f1]" />
+        <p className="text-[#a1a1aa] text-sm">Redirecting to app...</p>
+      </div>
+
       {showFallback && (
-        <div className="mt-4 space-y-3 text-center">
-          <p className="text-foreground text-sm font-medium">Open Subzo to finish signing in.</p>
-          <p className="text-muted-foreground text-xs">Tap below if Android did not switch back automatically.</p>
-          <Button asChild variant="outline" size="sm">
-            <a href={launchUrls.intent}>Open Subzo</a>
+        <div className="mt-6 space-y-3 text-center">
+          <p className="text-white text-sm font-medium">
+            Tap below to open Subzo
+          </p>
+          <Button
+            asChild
+            className="bg-[#6366f1] hover:bg-[#4f46e5] text-white rounded-full px-6"
+          >
+            <a href={launchUrl}>Open Subzo</a>
           </Button>
+          <p className="text-[#71717a] text-xs mt-2">
+            If the app doesn't open, make sure Subzo is installed.
+          </p>
         </div>
       )}
     </div>
