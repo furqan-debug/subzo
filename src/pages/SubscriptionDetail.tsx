@@ -1,16 +1,17 @@
 import { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { format, parseISO, differenceInMonths } from 'date-fns';
+import { format, parseISO, differenceInMonths, differenceInDays } from 'date-fns';
 import { useSubscriptions, useDeleteSubscription, useUpdateSubscription } from '@/hooks/useSubscriptions';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, ExternalLink, Trash2, XCircle, DollarSign, CalendarDays, Tag, BarChart3, Clock, Percent } from 'lucide-react';
-import { differenceInDays } from 'date-fns';
 import { playDeleteFeedback } from '@/lib/celebrations';
 import { DetailSkeleton } from '@/components/SkeletonLoaders';
 import SubscriptionLogo from '@/components/SubscriptionLogo';
+import { toMonthlyAmount, formatBillingCycle, formatCurrency } from '@/lib/utils';
+import { useProfile } from '@/hooks/useProfile';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -20,6 +21,7 @@ const SubscriptionDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: subscriptions, isLoading } = useSubscriptions();
+  const { currency } = useProfile();
   const deleteMutation = useDeleteSubscription();
   const updateMutation = useUpdateSubscription();
 
@@ -28,31 +30,48 @@ const SubscriptionDetail = () => {
   const totalSpent = useMemo(() => {
     if (!sub) return 0;
     const months = Math.max(1, differenceInMonths(new Date(), parseISO(sub.created_at)));
-    const monthly = sub.billing_cycle === 'yearly' ? Number(sub.amount) / 12 : sub.billing_cycle === 'weekly' ? Number(sub.amount) * 4.33 : Number(sub.amount);
-    return monthly * months;
+    return toMonthlyAmount(sub.amount, sub.billing_cycle) * months;
   }, [sub]);
 
   if (isLoading) return <DetailSkeleton />;
-  if (!sub) return <div className="text-center py-20 text-muted-foreground">Subscription not found</div>;
+
+  if (!sub) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center gap-4">
+        <p className="text-muted-foreground">Subscription not found</p>
+        <Button variant="outline" onClick={() => navigate('/')}>Go Home</Button>
+      </div>
+    );
+  }
 
   const handleDelete = async () => {
     playDeleteFeedback();
-    await deleteMutation.mutateAsync(sub.id);
-    toast({ title: 'Subscription deleted' });
-    setTimeout(() => navigate('/'), 500);
+    try {
+      await deleteMutation.mutateAsync(sub.id);
+      toast({ title: 'Subscription deleted' });
+      setTimeout(() => navigate('/'), 500);
+    } catch {
+      toast({ title: 'Failed to delete', variant: 'destructive' });
+    }
   };
 
   const handleCancel = async () => {
     playDeleteFeedback();
-    await updateMutation.mutateAsync({ id: sub.id, status: 'cancelled' });
-    toast({ title: 'Marked as cancelled' });
+    try {
+      await updateMutation.mutateAsync({ id: sub.id, status: 'cancelled' });
+      toast({ title: 'Marked as cancelled' });
+    } catch {
+      toast({ title: 'Failed to update status', variant: 'destructive' });
+    }
   };
 
+  const cycleLabel = formatBillingCycle(sub.billing_cycle);
+
   const detailItems = [
-    { label: 'Amount', value: `$${Number(sub.amount).toFixed(2)}/${sub.billing_cycle === 'monthly' ? 'mo' : sub.billing_cycle === 'yearly' ? 'yr' : 'wk'}`, icon: DollarSign, color: 'text-primary' },
-    { label: 'Next renewal', value: format(parseISO(sub.next_renewal), 'MMM d, yyyy'), icon: CalendarDays, color: 'text-accent' },
+    { label: 'Amount', value: `${formatCurrency(Number(sub.amount), currency)}/${cycleLabel}`, icon: DollarSign, color: 'text-primary' },
+    { label: 'Next renewal', value: sub.next_renewal ? format(parseISO(sub.next_renewal), 'MMM d, yyyy') : '—', icon: CalendarDays, color: 'text-accent' },
     { label: 'Category', value: sub.category, icon: Tag, color: 'text-warning' },
-    { label: 'Total spent (est.)', value: `$${totalSpent.toFixed(2)}`, icon: BarChart3, color: 'text-success' },
+    { label: 'Total spent (est.)', value: formatCurrency(totalSpent, currency), icon: BarChart3, color: 'text-success' },
   ];
 
   return (
@@ -60,6 +79,7 @@ const SubscriptionDetail = () => {
       <button
         onClick={() => navigate(-1)}
         className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all"
+        aria-label="Go back"
       >
         <ArrowLeft className="h-5 w-5" />
       </button>
@@ -79,7 +99,7 @@ const SubscriptionDetail = () => {
                   : 'bg-destructive/10 text-destructive border-destructive/20'
               }`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${sub.status === 'active' ? 'bg-success' : 'bg-destructive'}`} />
-                {sub.status}
+                {sub.status === 'active' ? 'Active' : 'Cancelled'}
               </span>
             </div>
           </div>
@@ -167,9 +187,14 @@ const SubscriptionDetail = () => {
       {/* Actions */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="space-y-2 pt-2">
         {sub.status === 'active' && (
-          <Button variant="outline" className="w-full text-warning border-warning/30 hover:bg-warning/10" onClick={handleCancel}>
+          <Button
+            variant="outline"
+            className="w-full text-warning border-warning/30 hover:bg-warning/10"
+            onClick={handleCancel}
+            disabled={updateMutation.isPending}
+          >
             <XCircle className="h-4 w-4 mr-2" />
-            Mark as Cancelled
+            {updateMutation.isPending ? 'Cancelling…' : 'Mark as Cancelled'}
           </Button>
         )}
 
@@ -187,7 +212,13 @@ const SubscriptionDetail = () => {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+              <AlertDialogAction
+                onClick={handleDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={deleteMutation.isPending}
+              >
+                Delete
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

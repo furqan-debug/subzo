@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { scheduleRenewalNotifications } from './useNotifications';
 
 export interface Subscription {
   id: string;
@@ -53,6 +52,7 @@ export const useSubscriptions = () => {
   });
 };
 
+// Popularity sort priority — higher = shown first in catalog
 const POPULARITY_RANK: Record<string, number> = {
   'Netflix': 1, 'Spotify': 2, 'YouTube Premium': 3, 'Amazon Prime': 4,
   'Disney+': 5, 'Apple Music': 6, 'HBO Max': 7, 'ChatGPT Plus': 8,
@@ -67,7 +67,8 @@ export const useCatalog = (search?: string) => {
   return useQuery({
     queryKey: ['catalog', search],
     queryFn: async () => {
-      let query = supabase.from('subscription_catalog').select('*').order('name');
+      // No server-side order needed; we sort client-side by popularity rank
+      let query = supabase.from('subscription_catalog').select('*');
       if (search) query = query.ilike('name', `%${search}%`);
       const { data, error } = await query;
       if (error) throw error;
@@ -80,6 +81,7 @@ export const useCatalog = (search?: string) => {
       });
     },
     staleTime: 5 * 60 * 1000,
+    gcTime: Infinity, // catalog data is static — keep it forever
   });
 };
 
@@ -89,15 +91,16 @@ export const useAddSubscription = () => {
 
   return useMutation({
     mutationFn: async (sub: Omit<Subscription, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
+      if (!user) throw new Error('Not authenticated');
       const { data, error } = await supabase
         .from('subscriptions')
-        .insert({ ...sub, user_id: user!.id })
+        .insert({ ...sub, user_id: user.id })
         .select()
         .single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_, _vars, _ctx) => {
       queryClient.invalidateQueries({ queryKey: ['subscriptions'] });
     },
   });

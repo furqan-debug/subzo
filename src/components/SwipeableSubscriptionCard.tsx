@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 import { Trash2 } from 'lucide-react';
 
@@ -11,18 +11,22 @@ const THRESHOLD = -100;
 
 const SwipeableSubscriptionCard = ({ children, onDelete }: Props) => {
   const x = useMotionValue(0);
-  const bg = useTransform(x, [-150, -100, 0], [
-    'hsl(0, 72%, 55%)',
-    'hsl(0, 72%, 45%)',
-    'hsl(0, 72%, 35%)',
+  const deletedRef = useRef(false);
+
+  // Color goes from transparent-ish dark → vivid red as the user swipes left
+  const bg = useTransform(x, [-150, -60, 0], [
+    'hsl(0, 72%, 50%)',  // fully swiped: vivid red
+    'hsl(0, 65%, 38%)',  // mid-way: darker red
+    'hsl(225, 20%, 10%)', // at rest: matches card background
   ]);
-  const iconOpacity = useTransform(x, [-100, -50, 0], [1, 0.5, 0]);
-  const iconScale = useTransform(x, [-120, -80, 0], [1.2, 0.8, 0.5]);
+  const iconOpacity = useTransform(x, [-100, -40, 0], [1, 0.5, 0]);
+  const iconScale = useTransform(x, [-120, -60, 0], [1.2, 0.9, 0.5]);
   const [swiping, setSwiping] = useState(false);
 
-  const handleDragEnd = (_: any, info: PanInfo) => {
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     setSwiping(false);
-    if (info.offset.x < THRESHOLD) {
+    if (info.offset.x < THRESHOLD && !deletedRef.current) {
+      deletedRef.current = true;
       onDelete();
     }
   };
@@ -35,7 +39,7 @@ const SwipeableSubscriptionCard = ({ children, onDelete }: Props) => {
         style={{ backgroundColor: bg }}
       >
         <motion.div style={{ opacity: iconOpacity, scale: iconScale }}>
-          <Trash2 className="h-5 w-5 text-destructive-foreground" />
+          <Trash2 className="h-5 w-5 text-white" />
         </motion.div>
       </motion.div>
 
@@ -43,11 +47,13 @@ const SwipeableSubscriptionCard = ({ children, onDelete }: Props) => {
       <motion.div
         drag="x"
         dragConstraints={{ left: -150, right: 0 }}
-        dragElastic={0.1}
+        dragElastic={0.08}
+        dragSnapToOrigin={false}
         style={{ x }}
         onDragStart={() => setSwiping(true)}
         onDragEnd={handleDragEnd}
         className="relative z-10"
+        whileDrag={{ cursor: 'grabbing' }}
       >
         <div style={{ pointerEvents: swiping ? 'none' : 'auto' }}>
           {children}

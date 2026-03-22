@@ -1,14 +1,18 @@
 import { useEffect, useRef } from 'react';
-import { useSpring, useMotionValue, motion } from 'framer-motion';
+import { useSpring, useMotionValue } from 'framer-motion';
+import { formatCurrency } from '@/lib/utils';
 
-interface AnimatedNumberProps {
+export interface AnimatedNumberProps {
   value: number;
+  /** ISO 4217 currency code (e.g. 'USD', 'EUR'). When provided, formats via Intl.NumberFormat. */
+  currency?: string;
+  /** Simple prefix (e.g. '$'). Ignored when `currency` is set. */
   prefix?: string;
   decimals?: number;
   className?: string;
 }
 
-const AnimatedNumber = ({ value, prefix = '', decimals = 2, className }: AnimatedNumberProps) => {
+const AnimatedNumber = ({ value, currency, prefix = '', decimals = 2, className }: AnimatedNumberProps) => {
   const ref = useRef<HTMLSpanElement>(null);
   const motionValue = useMotionValue(0);
   const springValue = useSpring(motionValue, { stiffness: 80, damping: 20 });
@@ -20,13 +24,17 @@ const AnimatedNumber = ({ value, prefix = '', decimals = 2, className }: Animate
   useEffect(() => {
     const unsubscribe = springValue.on('change', (latest) => {
       if (ref.current) {
-        ref.current.textContent = `${prefix}${latest.toFixed(decimals)}`;
+        ref.current.textContent = currency
+          ? formatCurrency(latest, currency)
+          : `${prefix}${latest.toFixed(decimals)}`;
       }
     });
     return unsubscribe;
-  }, [springValue, prefix, decimals]);
+  }, [springValue, currency, prefix, decimals]);
 
-  return <span ref={ref} className={className}>{prefix}0.{'0'.repeat(decimals)}</span>;
+  const initial = currency ? formatCurrency(0, currency) : `${prefix}${'0'.repeat(decimals > 0 ? 1 : 0)}${decimals > 0 ? '.' + '0'.repeat(decimals) : ''}`;
+
+  return <span ref={ref} className={className}>{initial}</span>;
 };
 
 export default AnimatedNumber;

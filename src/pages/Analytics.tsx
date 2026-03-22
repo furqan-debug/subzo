@@ -9,8 +9,10 @@ import { differenceInMonths, parseISO } from 'date-fns';
 import FeatureGate from '@/components/FeatureGate';
 import { useProfile } from '@/hooks/useProfile';
 import { canAccess } from '@/lib/planFeatures';
+import { toMonthlyAmount, formatBillingCycle, formatCurrency } from '@/lib/utils';
 
-const COLORS = [
+// Chart colours matching the design-system CSS variable values
+const CHART_COLORS = [
   'hsl(250, 85%, 65%)', 'hsl(200, 90%, 55%)', 'hsl(155, 70%, 45%)',
   'hsl(40, 90%, 55%)', 'hsl(0, 72%, 55%)', 'hsl(280, 70%, 60%)',
   'hsl(170, 60%, 50%)', 'hsl(30, 80%, 55%)', 'hsl(220, 60%, 55%)',
@@ -18,27 +20,21 @@ const COLORS = [
 
 const Analytics = () => {
   const { data: subscriptions, isLoading } = useSubscriptions();
-  const { subscriptionPlan } = useProfile();
+  const { subscriptionPlan, currency } = useProfile();
   const hasFullAnalytics = canAccess(subscriptionPlan, 'full_analytics');
 
   const active = useMemo(() => subscriptions?.filter((s) => s.status === 'active') ?? [], [subscriptions]);
   const cancelled = useMemo(() => subscriptions?.filter((s) => s.status === 'cancelled') ?? [], [subscriptions]);
 
-  const monthlyTotal = useMemo(() => {
-    return active.reduce((sum, s) => {
-      const a = Number(s.amount);
-      if (s.billing_cycle === 'yearly') return sum + a / 12;
-      if (s.billing_cycle === 'weekly') return sum + a * 4.33;
-      return sum + a;
-    }, 0);
-  }, [active]);
+  const monthlyTotal = useMemo(
+    () => active.reduce((sum, s) => sum + toMonthlyAmount(s.amount, s.billing_cycle), 0),
+    [active]
+  );
 
   const byCategory = useMemo(() => {
     const map: Record<string, number> = {};
     active.forEach((s) => {
-      const a = Number(s.amount);
-      const monthly = s.billing_cycle === 'yearly' ? a / 12 : s.billing_cycle === 'weekly' ? a * 4.33 : a;
-      map[s.category] = (map[s.category] || 0) + monthly;
+      map[s.category] = (map[s.category] || 0) + toMonthlyAmount(s.amount, s.billing_cycle);
     });
     return Object.entries(map)
       .map(([name, value]) => ({ name, value: Math.round(value * 100) / 100 }))
@@ -47,18 +43,18 @@ const Analytics = () => {
 
   const mostExpensive = useMemo(() => {
     if (!active.length) return null;
-    return active.reduce((max, s) => {
-      const a = Number(s.amount);
-      const monthly = s.billing_cycle === 'yearly' ? a / 12 : s.billing_cycle === 'weekly' ? a * 4.33 : a;
-      const maxMonthly = max.billing_cycle === 'yearly' ? Number(max.amount) / 12 : max.billing_cycle === 'weekly' ? Number(max.amount) * 4.33 : Number(max.amount);
-      return monthly > maxMonthly ? s : max;
-    });
+    return active.reduce((max, s) =>
+      toMonthlyAmount(s.amount, s.billing_cycle) > toMonthlyAmount(max.amount, max.billing_cycle) ? s : max
+    );
   }, [active]);
 
-  const moneySaved = useMemo(() => {
+  /**
+   * "Estimated avoided cost" — how much the user would have spent had they
+   * not cancelled these subscriptions. Renamed from the misleading "moneySaved".
+   */
+  const estimatedAvoidedCost = useMemo(() => {
     return cancelled.reduce((sum, s) => {
-      const a = Number(s.amount);
-      const monthly = s.billing_cycle === 'yearly' ? a / 12 : s.billing_cycle === 'weekly' ? a * 4.33 : a;
+      const monthly = toMonthlyAmount(s.amount, s.billing_cycle);
       const monthsSinceCancelled = Math.max(1, differenceInMonths(new Date(), parseISO(s.updated_at)));
       return sum + monthly * monthsSinceCancelled;
     }, 0);
@@ -83,7 +79,7 @@ const Analytics = () => {
               </div>
               <p className="text-xs text-muted-foreground uppercase tracking-wider">Monthly</p>
               <p className="font-display text-2xl font-bold mt-0.5 text-gradient">
-                <AnimatedNumber value={monthlyTotal} prefix="$" />
+                <AnimatedNumber value={monthlyTotal} currency={currency} />
               </p>
             </div>
           </div>
@@ -96,7 +92,7 @@ const Analytics = () => {
               </div>
               <p className="text-xs text-muted-foreground uppercase tracking-wider">Yearly</p>
               <p className="font-display text-2xl font-bold mt-0.5">
-                <AnimatedNumber value={monthlyTotal * 12} prefix="$" decimals={0} />
+                <AnimatedNumber value={monthlyTotal * 12} currency={currency} decimals={0} />
               </p>
             </div>
           </div>
@@ -110,8 +106,8 @@ const Analytics = () => {
         title="Full Analytics"
         description="Upgrade to see spending breakdown, savings, and more."
       >
-        {/* Money saved */}
-        {moneySaved > 0 && (
+        {/* Estimated avoided cost */}
+        {estimatedAvoidedCost > 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="glass-card border-success/20 p-4">
               <div className="flex items-center gap-3 relative z-10">
@@ -119,9 +115,9 @@ const Analytics = () => {
                   <BadgeCheck className="h-5 w-5 text-success" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Money saved</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Estimated avoided cost</p>
                   <p className="font-semibold">
-                    <AnimatedNumber value={moneySaved} prefix="$" className="text-success" />
+                    <AnimatedNumber value={estimatedAvoidedCost} currency={currency} className="text-success" />
                     <span className="text-muted-foreground text-xs ml-1">from {cancelled.length} cancelled</span>
                   </p>
                 </div>
@@ -140,7 +136,11 @@ const Analytics = () => {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground uppercase tracking-wider">Most expensive</p>
-                  <p className="font-semibold">{mostExpensive.name} — <span className="text-primary">${Number(mostExpensive.amount).toFixed(2)}</span>/{mostExpensive.billing_cycle === 'monthly' ? 'mo' : mostExpensive.billing_cycle === 'yearly' ? 'yr' : 'wk'}</p>
+                  <p className="font-semibold">
+                    {mostExpensive.name} —{' '}
+                    <span className="text-primary">{formatCurrency(Number(mostExpensive.amount), currency)}</span>
+                    /{formatBillingCycle(mostExpensive.billing_cycle)}
+                  </p>
                 </div>
               </div>
             </div>
@@ -154,7 +154,11 @@ const Analytics = () => {
               <div className="relative z-10">
                 <h3 className="font-display font-semibold mb-4">Spending by category</h3>
                 <div className="flex items-center gap-6">
-                  <div className="relative h-36 w-36 flex-shrink-0">
+                  <div
+                    className="relative h-36 w-36 flex-shrink-0"
+                    role="img"
+                    aria-label={`Spending by category donut chart — total ${formatCurrency(monthlyTotal, currency)}/mo`}
+                  >
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
@@ -168,15 +172,15 @@ const Analytics = () => {
                           strokeWidth={0}
                           cornerRadius={3}
                         >
-                          {byCategory.map((_, i) => (
-                            <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                          {byCategory.map((cat, i) => (
+                            <Cell key={cat.name} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                           ))}
                         </Pie>
                       </PieChart>
                     </ResponsiveContainer>
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                       <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Total</span>
-                      <span className="font-display text-lg font-bold text-gradient">${Math.round(monthlyTotal)}</span>
+                      <span className="font-display text-lg font-bold text-gradient">{formatCurrency(monthlyTotal, currency)}</span>
                       <span className="text-[10px] text-muted-foreground">/mo</span>
                     </div>
                   </div>
@@ -187,7 +191,7 @@ const Analytics = () => {
                         <div key={cat.name} className="space-y-1">
                           <div className="flex items-center justify-between text-xs">
                             <div className="flex items-center gap-2">
-                              <div className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                              <div className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }} />
                               <span className="text-foreground/80">{cat.name}</span>
                             </div>
                             <span className="font-medium text-muted-foreground">{pct}%</span>
@@ -195,7 +199,7 @@ const Analytics = () => {
                           <div className="h-1 rounded-full bg-secondary overflow-hidden">
                             <div
                               className="h-full rounded-full transition-all duration-700"
-                              style={{ width: `${pct}%`, backgroundColor: COLORS[i % COLORS.length] }}
+                              style={{ width: `${pct}%`, backgroundColor: CHART_COLORS[i % CHART_COLORS.length] }}
                             />
                           </div>
                         </div>

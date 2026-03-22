@@ -81,7 +81,7 @@
       0 0 0 1px hsl(var(--border) / 0.5),
       0 4px 24px -4px hsl(0 0% 0% / 0.3),
       inset 0 1px 0 0 hsl(var(--foreground) / 0.03);
-    will-change: transform;
+    /* will-change removed — applying to ALL cards reserves GPU layers for every card simultaneously */
   }
 
 
@@ -209,8 +209,8 @@
   }
 
   @keyframes pro-shimmer {
-    0% { left: -100%; }
-    50% { left: 100%; }
+    0%   { left: -100%; }
+    50%  { left: 100%; }
     100% { left: 100%; }
   }
 

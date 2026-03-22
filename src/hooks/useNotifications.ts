@@ -6,12 +6,18 @@ import type { Subscription } from './useSubscriptions';
 
 const isNative = Capacitor.isNativePlatform();
 
-/** Generate a stable numeric ID from a UUID (first 8 hex chars → int32) */
-const uuidToNotifId = (uuid: string): number => {
-  return parseInt(uuid.replace(/-/g, '').substring(0, 8), 16) % 2147483647;
+/**
+ * Generate a stable numeric ID from a UUID (first 8 hex chars → int32).
+ * Uses *3 multiplier so that offset variants (+1, +2) never collide with
+ * the base ID of another subscription.
+ * Offsets: 0 = early reminder, 1 = day-of, 2 = trial expiry
+ */
+const uuidToNotifId = (uuid: string, offset = 0): number => {
+  const base = parseInt(uuid.replace(/-/g, '').substring(0, 8), 16) % 715_827_882; // MAX_INT / 3
+  return base * 3 + offset;
 };
 
-const WEEKLY_SUMMARY_ID = 999999;
+const WEEKLY_SUMMARY_ID = 999_999;
 
 // ── Channel IDs ──
 const CHANNEL_RENEWALS = 'renewal_reminders';
@@ -78,7 +84,7 @@ export const scheduleRenewalNotifications = async (
     }
 
     const now = new Date();
-    const notifications: any[] = [];
+    const notifications: Parameters<typeof LocalNotifications.schedule>[0]['notifications'] = [];
 
     const activeSubs = subscriptions.filter((s) => s.status === 'active');
 
@@ -91,12 +97,12 @@ export const scheduleRenewalNotifications = async (
       if (earlyAt > now) {
         const daysUntil = differenceInDays(renewalDate, earlyDate);
         notifications.push({
-          id: uuidToNotifId(sub.id),
+          id: uuidToNotifId(sub.id, 0),
           title: '📅 Upcoming Renewal',
           body: `${sub.name} renews in ${daysUntil} day${daysUntil !== 1 ? 's' : ''} — ${fmt(currency, sub.amount)}`,
           schedule: { at: earlyAt },
           channelId: CHANNEL_RENEWALS,
-          sound: 'default' as const,
+          sound: 'default',
           smallIcon: 'ic_launcher',
           iconColor: '#6366f1',
           extra: { subscriptionId: sub.id, type: 'renewal_early' },
@@ -107,12 +113,12 @@ export const scheduleRenewalNotifications = async (
       const dayOfAt = setSeconds(setMinutes(setHours(renewalDate, 9), 0), 0);
       if (dayOfAt > now) {
         notifications.push({
-          id: uuidToNotifId(sub.id) + 1,
+          id: uuidToNotifId(sub.id, 1),
           title: '🔔 Renewing Today',
           body: `${sub.name} renews today — ${fmt(currency, sub.amount)}`,
           schedule: { at: dayOfAt },
           channelId: CHANNEL_RENEWALS,
-          sound: 'default' as const,
+          sound: 'default',
           smallIcon: 'ic_launcher',
           iconColor: '#6366f1',
           extra: { subscriptionId: sub.id, type: 'renewal_today' },
@@ -126,12 +132,12 @@ export const scheduleRenewalNotifications = async (
         const trialAt = setSeconds(setMinutes(setHours(trialAlertDate, 9), 0), 0);
         if (trialAt > now) {
           notifications.push({
-            id: uuidToNotifId(sub.id) + 2,
+            id: uuidToNotifId(sub.id, 2),
             title: '⚠️ Trial Ending Tomorrow',
             body: `Your ${sub.name} trial ends tomorrow — cancel before you're charged ${fmt(currency, sub.amount)}`,
             schedule: { at: trialAt },
             channelId: CHANNEL_TRIALS,
-            sound: 'default' as const,
+            sound: 'default',
             smallIcon: 'ic_launcher',
             iconColor: '#ef4444',
             extra: { subscriptionId: sub.id, type: 'trial_expiry' },
@@ -158,7 +164,7 @@ export const scheduleRenewalNotifications = async (
           body: `You have ${weekRenewals.length} renewal${weekRenewals.length !== 1 ? 's' : ''} this week totaling ${fmt(currency, weekTotal)}`,
           schedule: { at: summaryAt, every: 'week' as const },
           channelId: CHANNEL_INSIGHTS,
-          sound: 'default' as const,
+          sound: 'default',
           smallIcon: 'ic_launcher',
           iconColor: '#10b981',
           extra: { type: 'weekly_summary' },
@@ -168,14 +174,13 @@ export const scheduleRenewalNotifications = async (
 
     if (notifications.length > 0) {
       await LocalNotifications.schedule({ notifications });
-      console.log(`Scheduled ${notifications.length} notifications`);
     }
   } catch (e) {
     console.warn('Failed to schedule notifications:', e);
   }
 };
 
-const WELCOME_NOTIF_ID = 888888;
+const WELCOME_NOTIF_ID = 888_888;
 
 /** Schedule a premium welcome notification 3s after call */
 export const scheduleWelcomeNotification = async (userName: string) => {
@@ -200,7 +205,6 @@ export const scheduleWelcomeNotification = async (userName: string) => {
         },
       ],
     });
-    console.log('Welcome notification scheduled');
   } catch (e) {
     console.warn('Failed to schedule welcome notification:', e);
   }

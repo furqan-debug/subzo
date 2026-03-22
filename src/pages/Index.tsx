@@ -15,13 +15,21 @@ import SwipeableSubscriptionCard from '@/components/SwipeableSubscriptionCard';
 import { playDeleteFeedback } from '@/lib/celebrations';
 import { toast } from '@/hooks/use-toast';
 import { getSubscriptionLimit, FREE_SUBSCRIPTION_LIMIT } from '@/lib/planFeatures';
+import { toMonthlyAmount, formatBillingCycle, formatCurrency } from '@/lib/utils';
 
 const Index = () => {
   const { data: subscriptions, isLoading } = useSubscriptions();
   const deleteMutation = useDeleteSubscription();
-  const { subscriptionPlan } = useProfile();
+  const { subscriptionPlan, currency } = useProfile();
   const { user } = useAuth();
-  const [bannerDismissed, setBannerDismissed] = useState(false);
+  // Persist banner dismissal so it doesn't reset on every navigation
+  const [bannerDismissed, setBannerDismissed] = useState(() => {
+    try { return localStorage.getItem('upgradeBannerDismissed') === '1'; } catch { return false; }
+  });
+  const dismissBanner = () => {
+    setBannerDismissed(true);
+    try { localStorage.setItem('upgradeBannerDismissed', '1'); } catch {}
+  };
   const subLimit = getSubscriptionLimit(subscriptionPlan);
   const isAtLimit = (subscriptions?.filter(s => s.status === 'active').length ?? 0) >= subLimit;
 
@@ -44,12 +52,10 @@ const Index = () => {
   );
 
   const monthlyTotal = useMemo(() => {
-    return activeSubscriptions.reduce((sum, s) => {
-      const amount = Number(s.amount);
-      if (s.billing_cycle === 'yearly') return sum + amount / 12;
-      if (s.billing_cycle === 'weekly') return sum + amount * 4.33;
-      return sum + amount;
-    }, 0);
+    return activeSubscriptions.reduce(
+      (sum, s) => sum + toMonthlyAmount(s.amount, s.billing_cycle),
+      0
+    );
   }, [activeSubscriptions]);
 
   const upcomingRenewals = useMemo(() => {
@@ -65,11 +71,9 @@ const Index = () => {
   // Quick stats
   const quickStats = useMemo(() => {
     if (!activeSubscriptions.length) return null;
-    const toMonthly = (s: typeof activeSubscriptions[0]) => {
-      const a = Number(s.amount);
-      return s.billing_cycle === 'yearly' ? a / 12 : s.billing_cycle === 'weekly' ? a * 4.33 : a;
-    };
-    const sorted = [...activeSubscriptions].sort((a, b) => toMonthly(a) - toMonthly(b));
+    const sorted = [...activeSubscriptions].sort(
+      (a, b) => toMonthlyAmount(a.amount, a.billing_cycle) - toMonthlyAmount(b.amount, b.billing_cycle)
+    );
     const cheapest = sorted[0];
     const priciest = sorted[sorted.length - 1];
     const now = new Date();
@@ -81,9 +85,13 @@ const Index = () => {
   }, [activeSubscriptions]);
 
   const handleSwipeDelete = async (id: string, name: string) => {
-    playDeleteFeedback();
-    await deleteMutation.mutateAsync(id);
-    toast({ title: `${name} deleted` });
+    try {
+      playDeleteFeedback();
+      await deleteMutation.mutateAsync(id);
+      toast({ title: `${name} deleted` });
+    } catch {
+      toast({ title: `Failed to delete ${name}`, variant: 'destructive' });
+    }
   };
 
   if (isLoading) return <IndexSkeleton />;
@@ -105,7 +113,7 @@ const Index = () => {
                   <Link to="/plans">View plans</Link>
                 </Button>
               </div>
-              <button onClick={() => setBannerDismissed(true)} className="text-muted-foreground hover:text-foreground transition-colors">
+              <button onClick={dismissBanner} className="text-muted-foreground hover:text-foreground transition-colors">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -124,11 +132,11 @@ const Index = () => {
               <div className="flex items-center justify-between mb-3">
                 <div>
                   {firstName && <p className="text-sm text-muted-foreground/70 font-medium">Hey, {firstName}</p>}
-                  <p className="text-[10px] text-muted-foreground/50 font-medium tracking-[0.15em] uppercase">{firstName ? 'Monthly spending' : 'Monthly spending'}</p>
+                  <p className="text-[10px] text-muted-foreground/50 font-medium tracking-[0.15em] uppercase">Monthly spending</p>
                 </div>
               </div>
               <p className="font-display text-4xl font-bold tracking-tight text-foreground/90">
-                <AnimatedNumber value={monthlyTotal} prefix="$" />
+                <AnimatedNumber value={monthlyTotal} currency={currency} />
               </p>
               <div className="mt-3 flex items-center gap-2.5 flex-wrap">
                 <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium bg-secondary/80 border border-border/50 text-muted-foreground">
@@ -136,7 +144,7 @@ const Index = () => {
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium bg-secondary border border-border text-muted-foreground">
                   <TrendingUp className="h-3 w-3" />
-                  ${(monthlyTotal * 12).toFixed(0)}/yr
+                  {formatCurrency(monthlyTotal * 12, currency)}/yr
                 </span>
                 <Link to="/analytics" className="inline-flex items-center gap-1 text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors ml-auto">
                   View insights <ArrowUpRight className="h-3 w-3" />
@@ -162,7 +170,7 @@ const Index = () => {
               <div className="pro-divider my-2" />
               <p className="text-[10px] text-muted-foreground/50 font-medium tracking-[0.15em] uppercase mb-0.5">Monthly spending</p>
               <p className="font-display text-4xl font-bold tracking-tight text-gradient">
-                <AnimatedNumber value={monthlyTotal} prefix="$" />
+                <AnimatedNumber value={monthlyTotal} currency={currency} />
               </p>
               <div className="mt-3 flex items-center gap-2.5 flex-wrap">
                 <span className="inline-flex items-center gap-1 rounded-full bg-primary/8 border border-primary/15 px-2.5 py-1 text-[11px] font-medium text-primary/80">
@@ -170,7 +178,7 @@ const Index = () => {
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium bg-primary/8 border border-primary/15 text-primary glow-primary">
                   <TrendingUp className="h-3 w-3" />
-                  ${(monthlyTotal * 12).toFixed(0)}/yr
+                  {formatCurrency(monthlyTotal * 12, currency)}/yr
                 </span>
                 <Link to="/analytics" className="inline-flex items-center gap-1 text-[11px] text-accent/70 hover:text-accent transition-colors ml-auto">
                   View insights <ArrowUpRight className="h-3 w-3" />
@@ -203,7 +211,7 @@ const Index = () => {
               )}
               {!firstName && <div className="mb-2" />}
               <p className="font-display text-4xl font-bold tracking-tight text-gradient-gold">
-                <AnimatedNumber value={monthlyTotal} prefix="$" />
+                <AnimatedNumber value={monthlyTotal} currency={currency} />
               </p>
               <div className="mt-3 flex items-center gap-2.5 flex-wrap">
                 <span className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium" style={{ borderColor: 'hsl(45 80% 55% / 0.12)', color: 'hsl(45 80% 60%)', background: 'hsl(45 80% 55% / 0.05)' }}>
@@ -211,7 +219,7 @@ const Index = () => {
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium border" style={{ borderColor: 'hsl(45 80% 55% / 0.15)', color: 'hsl(45 80% 65%)', background: 'hsl(45 80% 55% / 0.06)', boxShadow: '0 0 12px -4px hsl(45 80% 55% / 0.15)' }}>
                   <TrendingUp className="h-3 w-3" />
-                  ${(monthlyTotal * 12).toFixed(0)}/yr
+                  {formatCurrency(monthlyTotal * 12, currency)}/yr
                 </span>
                 <Link to="/analytics" className="inline-flex items-center gap-1 text-[11px] transition-colors ml-auto" style={{ color: 'hsl(45 80% 65% / 0.6)' }}>
                   View insights <ArrowUpRight className="h-3 w-3" />
@@ -277,7 +285,7 @@ const Index = () => {
                         <span className="text-[10px] font-semibold text-warning">
                           {daysLeft === 0 ? 'Today' : daysLeft === 1 ? 'Tomorrow' : `Renew in ${daysLeft}d`}
                         </span>
-                        <p className="text-xs font-bold">${Number(sub.amount).toFixed(2)}<span className="text-muted-foreground font-normal">/{sub.billing_cycle === 'monthly' ? 'mo' : sub.billing_cycle === 'yearly' ? 'yr' : 'wk'}</span></p>
+                        <p className="text-xs font-bold">{formatCurrency(Number(sub.amount), currency)}<span className="text-muted-foreground font-normal">/{formatBillingCycle(sub.billing_cycle)}</span></p>
                       </div>
                     </div>
                   </motion.div>
@@ -325,7 +333,7 @@ const Index = () => {
           </div>
         ) : (
           <div className="space-y-2">
-            {activeSubscriptions.map((sub, i) => (
+            {activeSubscriptions.map((sub) => (
               <div
                 key={sub.id}
               >
@@ -352,8 +360,8 @@ const Index = () => {
                             </p>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-bold">${Number(sub.amount).toFixed(2)}</p>
-                            <p className="text-xs text-muted-foreground">/{sub.billing_cycle === 'monthly' ? 'mo' : sub.billing_cycle === 'yearly' ? 'yr' : 'wk'}</p>
+                            <p className="text-sm font-bold">{formatCurrency(Number(sub.amount), currency)}</p>
+                            <p className="text-xs text-muted-foreground">/{formatBillingCycle(sub.billing_cycle)}</p>
                           </div>
                         </CardContent>
                       </Card>

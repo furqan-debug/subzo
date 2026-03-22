@@ -11,6 +11,13 @@ import GoogleSignInButton from '@/components/GoogleSignInButton';
 
 type AuthMode = 'login' | 'signup' | 'forgot';
 
+// Static — defined outside component to avoid re-creation on every render
+const features = [
+  { icon: Zap, label: 'Track all subscriptions in one place' },
+  { icon: TrendingDown, label: 'See where your money goes' },
+  { icon: Bell, label: 'Never get surprised by a charge' },
+];
+
 const Auth = () => {
   const { user, loading, signIn, signUp, resetPassword } = useAuth();
   const [mode, setMode] = useState<AuthMode>('login');
@@ -32,33 +39,36 @@ const Auth = () => {
     e.preventDefault();
     setSubmitting(true);
 
-    if (mode === 'forgot') {
-      const { error } = await resetPassword(email);
-      if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
-      else toast({ title: 'Check your email', description: 'Password reset link sent.' });
+    try {
+      if (mode === 'forgot') {
+        const { error } = await resetPassword(email);
+        if (error) {
+          toast({ title: 'Error', description: error.message, variant: 'destructive' });
+        } else {
+          toast({ title: 'Check your email', description: 'Password reset link sent.' });
+          // Switch back to login after a successful reset request
+          setTimeout(() => setMode('login'), 1500);
+        }
+        return;
+      }
+
+      const fn = mode === 'login' ? signIn : signUp;
+      const { error } = await fn(email, password);
+      if (error) {
+        toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      } else if (mode === 'signup') {
+        toast({ title: 'Account created!', description: 'Check your email to confirm.' });
+      }
+    } catch {
+      toast({ title: 'Unexpected error. Please try again.', variant: 'destructive' });
+    } finally {
       setSubmitting(false);
-      return;
     }
-
-    const fn = mode === 'login' ? signIn : signUp;
-    const { error } = await fn(email, password);
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } else if (mode === 'signup') {
-      toast({ title: 'Account created!', description: 'Check your email to confirm.' });
-    }
-    setSubmitting(false);
   };
-
-  const features = [
-    { icon: Zap, label: 'Track all subscriptions in one place' },
-    { icon: TrendingDown, label: 'See where your money goes' },
-    { icon: Bell, label: 'Never get surprised by a charge' },
-  ];
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* Left side - branding (hidden on mobile) */}
+      {/* Left side — branding (hidden on mobile) */}
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-16 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/5" />
         <div className="relative z-10">
@@ -87,7 +97,7 @@ const Auth = () => {
         </div>
       </div>
 
-      {/* Right side - auth form */}
+      {/* Right side — auth form */}
       <div className="flex flex-1 items-center justify-center px-6 lg:px-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -104,15 +114,20 @@ const Auth = () => {
             {mode === 'login' ? 'Welcome back' : mode === 'signup' ? 'Create account' : 'Reset password'}
           </h2>
           <p className="text-muted-foreground mb-8 text-sm">
-            {mode === 'login' ? 'Sign in to manage your subscriptions' : mode === 'signup' ? 'Start tracking your subscriptions' : 'We\'ll send you a reset link'}
+            {mode === 'login'
+              ? 'Sign in to manage your subscriptions'
+              : mode === 'signup'
+              ? 'Start tracking your subscriptions'
+              : "We'll send you a reset link"}
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" aria-label={`${mode} form`}>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
+                autoComplete="email"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -134,6 +149,7 @@ const Auth = () => {
                   <Input
                     id="password"
                     type="password"
+                    autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -149,7 +165,7 @@ const Auth = () => {
               <button
                 type="button"
                 onClick={() => setMode('forgot')}
-                className="text-xs text-primary hover:underline"
+                className="text-xs text-primary hover:underline min-h-[44px] flex items-center"
               >
                 Forgot password?
               </button>

@@ -33,13 +33,11 @@ const currencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'INR', 'JPY'];
 const planLabels: Record<string, string> = {
   monthly: 'Pro Monthly',
   annual: 'Pro Annual',
-  '6month': 'Pro',
 };
 
 const planPrices: Record<string, string> = {
   monthly: '$1.99/mo',
   annual: '$14.99/yr',
-  '6month': '',
 };
 
 const SettingsPage = () => {
@@ -60,8 +58,11 @@ const SettingsPage = () => {
 
   useEffect(() => {
     if (profile) {
-      const c = (profile as any).currency ?? 'USD';
-      const r = String((profile as any).reminder_days_before ?? 3);
+      // Cast through unknown is safer than `as any` — these columns exist at
+      // runtime but aren't reflected in the generated types yet.
+      const p = profile as unknown as { currency?: string; reminder_days_before?: number };
+      const c = p.currency ?? 'USD';
+      const r = String(p.reminder_days_before ?? 3);
       setCurrency(c);
       setReminderDays(r);
       setOriginalCurrency(c);
@@ -139,8 +140,12 @@ const SettingsPage = () => {
       const a = document.createElement('a');
       a.href = url;
       a.download = fileName;
+      // Must append to DOM before click for Firefox compatibility
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      // Revoke after a short delay to ensure the download has started
+      setTimeout(() => URL.revokeObjectURL(url), 100);
     }
     toast({ title: 'Exported!', description: `${subscriptions.length} subscriptions exported.` });
   };

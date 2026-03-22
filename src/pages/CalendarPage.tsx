@@ -1,14 +1,37 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { DayPicker, DayContentProps } from 'react-day-picker';
 import { format, parseISO } from 'date-fns';
 import { motion } from 'framer-motion';
 import { useSubscriptions, Subscription } from '@/hooks/useSubscriptions';
 import { Card, CardContent } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { CalendarDays } from 'lucide-react';
 import SubscriptionLogo from '@/components/SubscriptionLogo';
 import FeatureGate from '@/components/FeatureGate';
+import { DayPicker, DayContentProps } from 'react-day-picker';
+import { useProfile } from '@/hooks/useProfile';
+
+// ─── CustomDayContent defined OUTSIDE the component to prevent remount on every render ───
+interface CustomDayContentProps extends DayContentProps {
+  renewalMap: Map<string, Subscription[]>;
+}
+
+const CustomDayContent = ({ date, renewalMap }: CustomDayContentProps) => {
+  const key = format(date, 'yyyy-MM-dd');
+  const subs = renewalMap.get(key);
+  return (
+    <div className="relative flex flex-col items-center">
+      <span>{date.getDate()}</span>
+      {subs && subs.length > 0 && (
+        <div className="flex gap-0.5 mt-0.5">
+          {subs.slice(0, 3).map((sub) => (
+            <div key={sub.id} className="h-1.5 w-1.5 rounded-full bg-primary" />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const CalendarPage = () => {
   return (
@@ -24,6 +47,7 @@ const CalendarPage = () => {
 
 const CalendarContent = () => {
   const { data: subscriptions } = useSubscriptions();
+  const { currency } = useProfile();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [month, setMonth] = useState(new Date());
 
@@ -47,26 +71,9 @@ const CalendarContent = () => {
   const selectedSubs = selectedKey ? renewalMap.get(selectedKey) ?? [] : [];
 
   const renewalDays = useMemo(
-    () => Array.from(renewalMap.keys()).map((k) => parseISO(k)),
+    () => [...renewalMap.keys()].map((key) => parseISO(key)),
     [renewalMap]
   );
-
-  function CustomDayContent(props: DayContentProps) {
-    const key = format(props.date, 'yyyy-MM-dd');
-    const subs = renewalMap.get(key);
-    return (
-      <div className="relative flex flex-col items-center">
-        <span>{props.date.getDate()}</span>
-        {subs && subs.length > 0 && (
-          <div className="flex gap-0.5 mt-0.5">
-            {subs.slice(0, 3).map((sub) => (
-              <div key={sub.id} className="h-1.5 w-1.5 rounded-full bg-primary" />
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -88,34 +95,34 @@ const CalendarContent = () => {
               month={month}
               onMonthChange={setMonth}
               modifiers={{ renewal: renewalDays }}
-              className={cn("p-0 pointer-events-auto [&_.rdp-month]:w-full")}
+              className={cn('p-0 pointer-events-auto [&_.rdp-month]:w-full')}
               classNames={{
-                months: "flex flex-col w-full",
-                month: "space-y-3 w-full",
-                caption: "flex justify-center pt-1 relative items-center",
-                caption_label: "text-sm font-display font-semibold",
-                nav: "space-x-1 flex items-center",
-                nav_button: "h-7 w-7 bg-secondary/50 hover:bg-secondary rounded-lg p-0 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors",
-                nav_button_previous: "absolute left-1",
-                nav_button_next: "absolute right-1",
-                table: "w-full border-collapse",
-                head_row: "flex w-full",
-                head_cell: "text-muted-foreground flex-1 font-normal text-[0.7rem] uppercase tracking-wider",
-                row: "flex w-full mt-1",
-                cell: "flex-1 text-center text-sm p-0.5 relative",
+                months: 'flex flex-col w-full',
+                month: 'space-y-3 w-full',
+                caption: 'flex justify-center pt-1 relative items-center',
+                caption_label: 'text-sm font-display font-semibold',
+                nav: 'space-x-1 flex items-center',
+                nav_button: 'h-7 w-7 bg-secondary/50 hover:bg-secondary rounded-lg p-0 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors',
+                nav_button_previous: 'absolute left-1',
+                nav_button_next: 'absolute right-1',
+                table: 'w-full border-collapse',
+                head_row: 'flex w-full',
+                head_cell: 'text-muted-foreground flex-1 font-normal text-[0.7rem] uppercase tracking-wider',
+                row: 'flex w-full mt-1',
+                cell: 'flex-1 text-center text-sm p-0.5 relative',
                 day: cn(
-                  "h-10 w-full rounded-lg font-normal transition-all duration-200",
-                  "hover:bg-secondary/50 focus:bg-secondary/50",
-                  "aria-selected:bg-primary aria-selected:text-primary-foreground aria-selected:font-semibold"
+                  'h-10 w-full rounded-lg font-normal transition-all duration-200',
+                  'hover:bg-secondary/50 focus:bg-secondary/50',
+                  'aria-selected:bg-primary aria-selected:text-primary-foreground aria-selected:font-semibold'
                 ),
-                day_selected: "bg-primary text-primary-foreground",
-                day_today: "bg-accent/15 text-accent font-semibold",
-                day_outside: "text-muted-foreground/30",
-                day_disabled: "text-muted-foreground/30",
-                day_hidden: "invisible",
+                day_selected: 'bg-primary text-primary-foreground',
+                day_today: 'bg-accent/15 text-accent font-semibold',
+                day_outside: 'text-muted-foreground/30',
+                day_disabled: 'text-muted-foreground/30',
+                day_hidden: 'invisible',
               }}
               components={{
-                DayContent: CustomDayContent,
+                DayContent: (props) => <CustomDayContent {...props} renewalMap={renewalMap} />,
                 IconLeft: () => (
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -153,7 +160,7 @@ const CalendarContent = () => {
                           <p className="text-sm font-medium truncate">{sub.name}</p>
                           <p className="text-xs text-muted-foreground capitalize">{sub.billing_cycle}</p>
                         </div>
-                        <p className="text-sm font-bold">${Number(sub.amount).toFixed(2)}</p>
+                        <p className="text-sm font-bold">{formatCurrency(Number(sub.amount), currency)}</p>
                       </CardContent>
                     </Card>
                   </motion.div>

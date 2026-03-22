@@ -1,10 +1,30 @@
 import confetti from 'canvas-confetti';
 
+// ─── Shared AudioContext (created once per session) ──────────────────────────
+let _audioCtx: AudioContext | null = null;
+
+const getAudioCtx = (): AudioContext | null => {
+  try {
+    if (!_audioCtx || _audioCtx.state === 'closed') {
+      _audioCtx = new AudioContext();
+    }
+    return _audioCtx;
+  } catch {
+    return null;
+  }
+};
+
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 /**
  * Soft chime sound using Web Audio API – no external files needed.
  */
 const createChime = (type: 'add' | 'delete') => {
-  const ctx = new AudioContext();
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+
   const now = ctx.currentTime;
 
   if (type === 'add') {
@@ -42,6 +62,7 @@ const createChime = (type: 'add' | 'delete') => {
 
 /**
  * Celebration burst – confetti particles from the center.
+ * Skipped if the user prefers reduced motion.
  */
 const celebrationBurst = () => {
   const defaults = {
@@ -89,11 +110,13 @@ const deletePoof = () => {
 };
 
 export const playAddCelebration = () => {
+  if (prefersReducedMotion()) return;
   try { createChime('add'); } catch {}
   celebrationBurst();
 };
 
 export const playDeleteFeedback = () => {
+  if (prefersReducedMotion()) return;
   try { createChime('delete'); } catch {}
   deletePoof();
 };
