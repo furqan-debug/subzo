@@ -111,12 +111,12 @@ const deletePoof = () => {
 
 export const playAddCelebration = () => {
   if (prefersReducedMotion()) return;
-  try { createChime('add'); } catch {}
+  try { createChime('add'); } catch (e) { console.warn('Failed to play chime', e); }
   celebrationBurst();
 };
 
 export const playDeleteFeedback = () => {
   if (prefersReducedMotion()) return;
-  try { createChime('delete'); } catch {}
+  try { createChime('delete'); } catch (e) { console.warn('Failed to play chime', e); }
   deletePoof();
 };

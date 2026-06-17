@@ -40,7 +40,7 @@ async function signInNative(): Promise<{ error: { message: string } | null }> {
       options: {},
     });
 
-    const idToken = (response as any)?.result?.idToken;
+    const idToken = (response as { result?: { idToken?: string } })?.result?.idToken;
     if (!idToken) {
       return { error: { message: 'No ID token received from Google' } };
     }
@@ -55,9 +55,10 @@ async function signInNative(): Promise<{ error: { message: string } | null }> {
     }
 
     return { error: null };
-  } catch (err: any) {
-    const message = err?.message || '';
-    const errorCode = err?.code || err?.result?.code || '';
+  } catch (err: unknown) {
+    const errorObj = err as Record<string, unknown>;
+    const message = (errorObj?.message as string) || '';
+    const errorCode = errorObj?.code || (errorObj?.result as Record<string, unknown>)?.code || '';
     console.error('=== GOOGLE SIGN-IN DEBUG ===');
     console.error('Full error object:', JSON.stringify(err, null, 2));
     console.error('Error code:', errorCode);

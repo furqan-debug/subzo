@@ -24,11 +24,11 @@ const Index = () => {
   const { user } = useAuth();
   // Persist banner dismissal so it doesn't reset on every navigation
   const [bannerDismissed, setBannerDismissed] = useState(() => {
-    try { return localStorage.getItem('upgradeBannerDismissed') === '1'; } catch { return false; }
+    try { return localStorage.getItem('upgradeBannerDismissed') === '1'; } catch (e) { console.warn(e); return false; }
   });
   const dismissBanner = () => {
     setBannerDismissed(true);
-    try { localStorage.setItem('upgradeBannerDismissed', '1'); } catch {}
+    try { localStorage.setItem('upgradeBannerDismissed', '1'); } catch (e) { console.warn(e); }
   };
   const subLimit = getSubscriptionLimit(subscriptionPlan);
   const isAtLimit = (subscriptions?.filter(s => s.status === 'active').length ?? 0) >= subLimit;

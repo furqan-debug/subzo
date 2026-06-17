@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { format, addMonths, addWeeks, addYears, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { useCatalog, useAddSubscription, useSubscriptions, type CatalogItem } from '@/hooks/useSubscriptions';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,9 +16,8 @@ import { playAddCelebration } from '@/lib/celebrations';
 import { useProfile } from '@/hooks/useProfile';
 import { getSubscriptionLimit, FREE_SUBSCRIPTION_LIMIT } from '@/lib/planFeatures';
 import SubscriptionLogo from '@/components/SubscriptionLogo';
-import { formatCurrency, formatBillingCycle } from '@/lib/utils';
-
-const CATEGORIES = ['Entertainment', 'Music', 'Productivity', 'Cloud', 'Fitness', 'Health', 'Security', 'Education', 'News', 'Gaming', 'Shopping', 'Professional', 'Other'];
+import { formatCurrency, formatBillingCycle, getNextRenewal } from '@/lib/utils';
+import { CATEGORIES } from '@/lib/constants';
 
 const AddSubscription = () => {
   const navigate = useNavigate();
@@ -29,8 +28,8 @@ const AddSubscription = () => {
   const { subscriptionPlan, currency } = useProfile();
   const addMutation = useAddSubscription();
 
-  const activeCount = subscriptions?.filter(s => s.status === 'active').length ?? 0;
-  const limit = getSubscriptionLimit(subscriptionPlan);
+  const activeCount = useMemo(() => subscriptions?.filter(s => s.status === 'active').length ?? 0, [subscriptions]);
+  const limit = useMemo(() => getSubscriptionLimit(subscriptionPlan), [subscriptionPlan]);
   const isAtLimit = activeCount >= limit;
 
   const [name, setName] = useState('');
@@ -44,23 +43,15 @@ const AddSubscription = () => {
   const [discountPercentage, setDiscountPercentage] = useState('');
   const [discountEndDate, setDiscountEndDate] = useState('');
 
-  const getNextRenewal = (start: string, billing: string) => {
-    // Use parseISO for safe ISO date parsing (avoids UTC-midnight timezone issues)
-    const d = parseISO(start);
-    if (billing === 'weekly') return format(addWeeks(d, 1), 'yyyy-MM-dd');
-    if (billing === 'yearly') return format(addYears(d, 1), 'yyyy-MM-dd');
-    return format(addMonths(d, 1), 'yyyy-MM-dd');
-  };
-
-  const checkLimit = () => {
+  const checkLimit = useCallback(() => {
     if (isAtLimit) {
       toast({ title: '🔒 Subscription limit reached', description: `Free plan allows ${FREE_SUBSCRIPTION_LIMIT} subscriptions. Upgrade to add more.` });
       return false;
     }
     return true;
-  };
+  }, [isAtLimit]);
 
-  const handleCatalogSelect = async (item: CatalogItem) => {
+  const handleCatalogSelect = useCallback(async (item: CatalogItem) => {
     if (!checkLimit()) return;
     if (addMutation.isPending) return;
     try {
@@ -86,9 +77,9 @@ const AddSubscription = () => {
     } catch (e: unknown) {
       toast({ title: 'Error', description: e instanceof Error ? e.message : 'Something went wrong', variant: 'destructive' });
     }
-  };
+  }, [checkLimit, addMutation, navigate]);
 
-  const handleCustomSubmit = async (e: React.FormEvent) => {
+  const handleCustomSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!checkLimit()) return;
     const parsedAmount = parseFloat(amount);
@@ -119,7 +110,7 @@ const AddSubscription = () => {
     } catch (e: unknown) {
       toast({ title: 'Error', description: e instanceof Error ? e.message : 'Something went wrong', variant: 'destructive' });
     }
-  };
+  }, [checkLimit, amount, name, addMutation, cycle, startDate, category, hasTrial, trialEndDate, hasDiscount, discountPercentage, discountEndDate, navigate]);
 
   return (
     <div className="space-y-5">

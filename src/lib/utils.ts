@@ -5,6 +5,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+import { format, addMonths, addWeeks, addYears, parseISO } from 'date-fns';
+
+export const getNextRenewal = (start: string, billing: string) => {
+  const d = parseISO(start);
+  if (billing === 'weekly') return format(addWeeks(d, 1), 'yyyy-MM-dd');
+  if (billing === 'yearly') return format(addYears(d, 1), 'yyyy-MM-dd');
+  return format(addMonths(d, 1), 'yyyy-MM-dd');
+};
+
 // ─── Subscription Utilities ─────────────────────────────────────────────────
 
 /** Exact weeks per month (52/12). Use instead of the approximated 4.33. */

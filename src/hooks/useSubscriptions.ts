@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { POPULARITY_RANK } from '@/lib/constants';
 
 export interface Subscription {
   id: string;
@@ -44,6 +45,7 @@ export const useSubscriptions = () => {
       const { data, error } = await supabase
         .from('subscriptions')
         .select('*')
+        .eq('user_id', user.id)
         .order('next_renewal', { ascending: true });
       if (error) throw error;
       return data as Subscription[];
@@ -52,16 +54,7 @@ export const useSubscriptions = () => {
   });
 };
 
-// Popularity sort priority — higher = shown first in catalog
-const POPULARITY_RANK: Record<string, number> = {
-  'Netflix': 1, 'Spotify': 2, 'YouTube Premium': 3, 'Amazon Prime': 4,
-  'Disney+': 5, 'Apple Music': 6, 'HBO Max': 7, 'ChatGPT Plus': 8,
-  'Claude Pro': 9, 'Google One': 10, 'iCloud+': 11, 'Adobe Creative Cloud': 12,
-  'Microsoft 365': 13, 'Hulu': 14, 'Paramount+': 15, 'Apple TV+': 16,
-  'Notion': 17, 'Slack': 18, 'Zoom': 19, 'GitHub': 20,
-  'Figma': 21, 'Dropbox': 22, 'NordVPN': 23, 'Crunchyroll': 24,
-  'PlayStation Plus': 25,
-};
+// POPULARITY_RANK moved to src/lib/constants.ts
 
 export const useCatalog = (search?: string) => {
   return useQuery({

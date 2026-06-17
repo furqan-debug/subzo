@@ -16,8 +16,8 @@ const NotificationScheduler = () => {
   const channelsCreated = useRef(false);
   const welcomeChecked = useRef(false);
 
-  const reminderDays = (profile as any)?.reminder_days_before ?? 3;
-  const currency = (profile as any)?.currency ?? 'USD';
+  const reminderDays = profile?.reminder_days_before ?? 3;
+  const currency = profile?.currency ?? 'USD';
 
   // Create notification channels once on mount
   useEffect(() => {
