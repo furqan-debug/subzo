@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/Button';
+import { toast } from '@/hooks/useToast';
 import { signInWithGoogle } from '@/hooks/useGoogleAuth';
 import { Loader2 } from 'lucide-react';
 

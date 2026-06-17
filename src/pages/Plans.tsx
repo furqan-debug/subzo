@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Check, Crown, Sparkles, Zap, X, Shield, Download, Bell, BarChart3, CalendarDays, Layers, Star } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 import { useProfile } from '@/hooks/useProfile';
 import { playAddCelebration } from '@/lib/celebrations';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/useToast';
 import { getPlanTier } from '@/lib/planFeatures';
 
 const proFeatures = [

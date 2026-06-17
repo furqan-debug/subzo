@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { toast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { toast } from '@/hooks/useToast';
 import { Loader2, Zap, TrendingDown, Bell } from 'lucide-react';
 import GoogleSignInButton from '@/components/GoogleSignInButton';
 

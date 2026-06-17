@@ -3,9 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { format, parseISO, differenceInMonths, differenceInDays } from 'date-fns';
 import { useSubscriptions, useDeleteSubscription, useUpdateSubscription } from '@/hooks/useSubscriptions';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
+import { Card, CardContent } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { toast } from '@/hooks/useToast';
 import { ArrowLeft, ExternalLink, Trash2, XCircle, DollarSign, CalendarDays, Tag, BarChart3, Clock, Percent } from 'lucide-react';
 import { playDeleteFeedback } from '@/lib/celebrations';
 import { DetailSkeleton } from '@/components/SkeletonLoaders';
@@ -15,7 +15,7 @@ import { useProfile } from '@/hooks/useProfile';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+} from '@/components/ui/AlertDialog';
 
 const SubscriptionDetail = () => {
   const { id } = useParams();

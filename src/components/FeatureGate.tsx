@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Lock, Crown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { useProfile } from '@/hooks/useProfile';
 import { canAccess, type Feature } from '@/lib/planFeatures';
 

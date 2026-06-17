@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import { motion } from 'framer-motion';
 import { useSubscriptions, Subscription } from '@/hooks/useSubscriptions';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { cn, formatCurrency } from '@/lib/utils';
 import { CalendarDays } from 'lucide-react';
 import SubscriptionLogo from '@/components/SubscriptionLogo';
